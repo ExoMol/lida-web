@@ -8,6 +8,7 @@ ipython = "*"
 django = "*"
 pyparsing = "*"
 pyvalem = {editable = true, path = "./../pyvalem"}
+mysqlclient = "*"
 
 [dev-packages]
 
