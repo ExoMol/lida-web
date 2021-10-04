@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class LifetimeConfig(AppConfig):
+class LifetimesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'lifetime'
+    name = 'lifetimes'
