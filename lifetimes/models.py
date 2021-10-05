@@ -3,15 +3,14 @@ from django.db import models
 from pyvalem.formula import Formula as PVFormula
 from pyvalem.stateful_species import StatefulSpecies as PVStatefulSpecies
 
-from utils.models import ProvenanceMixin, ReprMixin
+from utils.models import BaseMixin
 
 
-class Formula(ProvenanceMixin, ReprMixin, models.Model):
+class Formula(BaseMixin, models.Model):
     """A data model representing a chemical formula of a stateless species, without regards to different isotopologues.
     It is highly recommended to only use the available class methods to interact with the database (get_from_* and
     create_from_*), as these are coded to handle the name canonicalization etc.
     """
-    id = models.AutoField(primary_key=True)
 
     # The following fields should be compatible with ExoMol database itself (and the formula_str needs to be compatible
     # with pyvalem.formula.Formula)
@@ -53,14 +52,14 @@ class Formula(ProvenanceMixin, ReprMixin, models.Model):
         except cls.DoesNotExist:
             pass
 
-        cls.objects.create(formula_str=formula_str, name=name, html=pyvalem_formula.html,
-                           charge=pyvalem_formula.charge, natoms=pyvalem_formula.natoms)
+        return cls.objects.create(formula_str=formula_str, name=name, html=pyvalem_formula.html,
+                                  charge=pyvalem_formula.charge, natoms=pyvalem_formula.natoms)
 
     def __str__(self):
         return self.formula_str
 
 
-class Isotopologue(ProvenanceMixin, ReprMixin, models.Model):
+class Isotopologue(BaseMixin, models.Model):
     """A data model representing a particular isotopologue belonging to the corresponding Formula instance.
     It is highly recommended to only use the available class methods to interact with the database (get_from_* and
     create_from_*), as these are coded to handle the name canonicalization etc.
@@ -72,7 +71,6 @@ class Isotopologue(ProvenanceMixin, ReprMixin, models.Model):
     the ExoMol-recommended dataset. However, multiple datasets per Isotopologue might be implemented in the future,
     in that case, the get_from_* and create_from_* methods need to be re-implemented.
     """
-    id = models.AutoField(primary_key=True)
     formula = models.ForeignKey(Formula, on_delete=models.CASCADE)
 
     # The following fields refer directly to the ExoMol database itself.
@@ -122,22 +120,21 @@ class Isotopologue(ProvenanceMixin, ReprMixin, models.Model):
         except cls.DoesNotExist:
             pass
 
-        cls.objects.create(formula=formula_instance, iso_formula_str=iso_formula_str, iso_slug=pyvalem_formula.slug,
-                           inchi_key=inchi_key, dataset_name=dataset_name, version=version, html=pyvalem_formula.html,
-                           mass=pyvalem_formula.mass)
+        return cls.objects.create(formula=formula_instance, iso_formula_str=iso_formula_str,
+                                  iso_slug=pyvalem_formula.slug, inchi_key=inchi_key, dataset_name=dataset_name,
+                                  version=version, html=pyvalem_formula.html, mass=pyvalem_formula.mass)
 
     def __str__(self):
         return str(self.formula)
 
 
-class State(ProvenanceMixin, ReprMixin, models.Model):
+class State(BaseMixin, models.Model):
     """A data model representing a stateful species. The stateless species is represented by the Isotopologue instance
     and its state is created by pyvalem.state compatible string.
     Only a single State instance belonging to the same Isotopologue and describing the same physical state should exist
     at any given time in the database. To ensure this, it is recommended to use available class methods for creating
     new instances.
     """
-    id = models.AutoField(primary_key=True)
     isotopologue = models.ForeignKey(Isotopologue, on_delete=models.CASCADE)
 
     state_str = models.CharField(max_length=64)
@@ -179,8 +176,8 @@ class State(ProvenanceMixin, ReprMixin, models.Model):
         assert species_html.startswith('M '), 'This should never be raised, only defense.'
         state_html = species_html.lstrip('M').strip()
 
-        cls.objects.create(isotopologue=isotopologue_instance, state_str=canonicalised_state_str, energy=energy,
-                           state_html=state_html)
+        return cls.objects.create(isotopologue=isotopologue_instance, state_str=canonicalised_state_str, energy=energy,
+                                  state_html=state_html)
 
     @staticmethod
     def canonicalise_state_str(state_str):
@@ -197,5 +194,45 @@ class State(ProvenanceMixin, ReprMixin, models.Model):
     def __str__(self):
         return f'{self.isotopologue} ({self.state_str})'
 
-# TODO: write Lifetime class with documentation
+
+class Lifetime(BaseMixin, models.Model):
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+
+    lifetime = models.FloatField()
+
+    @classmethod
+    def get_from_data(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def create_from_data(cls):
+        raise NotImplementedError
+
+    def __str__(self):
+        return f'{str(self.state.isotopologue)}({self.state.state_str} -> G)'
+
+    def __repr__(self):
+        return self.str_to_repr(str(self.state))
+
+
+class Transition(BaseMixin, models.Model):
+    initial_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_from')
+    final_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_to')
+
+    lifetime = models.FloatField()
+    branching_ratio = models.FloatField()
+
+    @classmethod
+    def get_from_data(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def create_from_data(cls):
+        raise NotImplementedError
+
+    def __str__(self):
+        return f'{str(self.initial_state.isotopologue)}({self.initial_state.state_str} -> {self.final_state.state_str})'
+
+
+# TODO: write docstrings
 # TODO: write some unittests!
