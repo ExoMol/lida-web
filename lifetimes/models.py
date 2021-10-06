@@ -48,7 +48,7 @@ class Formula(ModelMixin, models.Model):
         try:
             cls.get_from_formula_str(formula_str)
             # Only a single instance with the given formula_str should exist!
-            raise ValueError(f'{cls.__name__}({formula_str}) already exists!')
+            raise ValueError(f'{cls._meta.object_name}({formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
 
@@ -125,7 +125,7 @@ class Isotopologue(ModelMixin, models.Model):
         # Only a single instance per iso_formula_str should live in the database:
         try:
             cls.get_from_iso_formula_str(iso_formula_str)
-            raise ValueError(f'{cls.__name__}({iso_formula_str}) already exists!')
+            raise ValueError(f'{cls._meta.object_name}({iso_formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
 
@@ -179,7 +179,7 @@ class State(ModelMixin, models.Model):
         # Only a single instance per isotopologue and state_str should ever exist:
         try:
             cls.objects.get(isotopologue=isotopologue, state_str=canonicalised_state_str)
-            raise ValueError(f'{cls.__name__}({isotopologue}, {canonicalised_state_str}) already exists!')
+            raise ValueError(f'{cls._meta.object_name}({isotopologue}, {canonicalised_state_str}) already exists!')
         except cls.DoesNotExist:
             pass
 
@@ -213,8 +213,8 @@ class Transition(ModelMixin, models.Model):
     new instances. The .get_from_* methods are also implemented to explicitly show what data uniquely identify each
     Transition instance.
     """
-    initial_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_from')
-    final_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_to')
+    initial_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_from_set')
+    final_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_to_set')
 
     partial_lifetime = models.FloatField(validators=[MinValueValidator(0.0)])
     branching_ratio = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)])
@@ -242,7 +242,7 @@ class Transition(ModelMixin, models.Model):
         # Only a single instance per the states pair should ever exist:
         try:
             cls.objects.get_from_states(initial_state, final_state)
-            raise ValueError(f'{cls.__name__}({initial_state}, {final_state}) already exists!')
+            raise ValueError(f'{cls._meta.object_name}({initial_state}, {final_state}) already exists!')
         except cls.DoesNotExist:
             pass
 

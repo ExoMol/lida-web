@@ -7,7 +7,7 @@ class ModelMixin:
 
     def str_to_repr(self, text):
         # noinspection PyUnresolvedReferences
-        return f'{self.id}:{self.__name__}({text})'
+        return f'{self.id}:{self._meta.object_name}({text})'
 
     def __repr__(self):
         return self.str_to_repr(str(self))
