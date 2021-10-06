@@ -105,12 +105,12 @@ class Isotopologue(ModelMixin, models.Model):
         return cls.objects.get(formula__formula_str=formula_str)
 
     @classmethod
-    def create_from_data(cls, formula_instance, iso_formula_str, inchi_key, dataset_name, version):
+    def create_from_data(cls, formula, iso_formula_str, inchi_key, dataset_name, version):
         # noinspection SpellCheckingInspection
         """A method for creation of new Isotopologue instances. It is highly recommended to use this method to prevent
         duplicates, inconsistent fields, etc.
         Example:
-            formula_instance = Formula.get_from_formula_str('H2O'),
+            formula = Formula.get_from_formula_str('H2O'),
             iso_formula_str = '(1H)2(16O)',
             inchi_key = 'XLYOFNOQVPJJNP-OUBTZVSYSA-N',
             dataset_name = 'POKAZATEL',
@@ -128,8 +128,13 @@ class Isotopologue(ModelMixin, models.Model):
             raise ValueError(f'{cls._meta.object_name}({iso_formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
+        try:
+            cls.get_from_formula_str(formula.formula_str)
+            raise ValueError(f'{cls._meta.object_name}({cls._meta.object_name}({formula.formula_str})) already exists!')
+        except cls.DoesNotExist:
+            pass
 
-        return cls.objects.create(formula=formula_instance, iso_formula_str=iso_formula_str,
+        return cls.objects.create(formula=formula, iso_formula_str=iso_formula_str,
                                   iso_slug=pyvalem_formula.slug, inchi_key=inchi_key, dataset_name=dataset_name,
                                   version=version, html=pyvalem_formula.html, mass=pyvalem_formula.mass)
 

@@ -41,3 +41,10 @@ class TestFormula(TestCase):
         f = Formula.objects.create(formula_str='CO', name='', html='', charge=0, natoms=2, id=42)
         self.assertEqual(f.id, 42)
         self.assertEqual('42:Formula(CO)', repr(f))
+
+    def test_create_duplicate(self):
+        Formula.create_from_data('CO', 'foo')
+        with self.assertRaises(ValueError):
+            Formula.create_from_data('CO', 'boo')
+        Formula.create_from_data('CO2', 'foo')
+        self.assertEqual(2, len(Formula.objects.all()))
