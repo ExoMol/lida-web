@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class BaseMixin:
+class ModelMixin:
     id = models.AutoField(primary_key=True)
     time_added = models.DateTimeField(auto_now_add=True)
 

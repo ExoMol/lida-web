@@ -1,12 +1,12 @@
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from pyvalem.formula import Formula as PVFormula
 from pyvalem.stateful_species import StatefulSpecies as PVStatefulSpecies
 
-from utils.models import BaseMixin
+from utils.models import ModelMixin
 
 
-class Formula(BaseMixin, models.Model):
+class Formula(ModelMixin, models.Model):
     """A data model representing a chemical formula of a stateless species, without regards to different isotopologues.
     It is highly recommended to only use the available class methods to interact with the database (get_from_* and
     create_from_*), as these are coded to handle the name canonicalization etc.
@@ -20,7 +20,7 @@ class Formula(BaseMixin, models.Model):
     # The following fields are auto-filled using pyvalem package, when using the class methods below for construction
     html = models.CharField(max_length=64)
     charge = models.SmallIntegerField()
-    natoms = models.SmallIntegerField()
+    natoms = models.PositiveSmallIntegerField()
 
     @classmethod
     def get_from_formula_str(cls, formula_str):
@@ -59,19 +59,20 @@ class Formula(BaseMixin, models.Model):
         return self.formula_str
 
 
-class Isotopologue(BaseMixin, models.Model):
+class Isotopologue(ModelMixin, models.Model):
     """A data model representing a particular isotopologue belonging to the corresponding Formula instance.
     It is highly recommended to only use the available class methods to interact with the database (get_from_* and
     create_from_*), as these are coded to handle the name canonicalization etc.
 
     The infrastructure is prepared for multiple Isotopologues belonging to a single Formula, but it is intended only
-    to have a single Isotopologue per Formula (the most naturally abundant one).
+    to have a single Isotopologue per Formula (the most naturally abundant one). OneToOne field is therefore used,
+    but it might be later changed to ForeignKey.
 
     At the moment, only one isotopologue with a given iso_formula_str might exist in the database, and this should be
     the ExoMol-recommended dataset. However, multiple datasets per Isotopologue might be implemented in the future,
     in that case, the get_from_* and create_from_* methods need to be re-implemented.
     """
-    formula = models.ForeignKey(Formula, on_delete=models.CASCADE)
+    formula = models.OneToOneField(Formula, on_delete=models.CASCADE)
 
     # The following fields refer directly to the ExoMol database itself.
     # One might use the fields for automatic checks for some new available data in the ExoMol database, or checks if the
@@ -94,6 +95,14 @@ class Isotopologue(BaseMixin, models.Model):
         might lead to inconsistent behaviour.
         """
         return cls.objects.get(iso_formula_str=iso_formula_str)
+
+    @classmethod
+    def get_from_formula_str(cls, formula_str):
+        """The formula_str needs to be canonicalised formula compatible with pyvalem.formula.Formula argument.
+        It is expected that only a single Formula instance with a given formula_str exists, otherwise this
+        might lead to inconsistent behaviour.
+        """
+        return cls.objects.get(formula__formula_str=formula_str)
 
     @classmethod
     def create_from_data(cls, formula_instance, iso_formula_str, inchi_key, dataset_name, version):
@@ -128,7 +137,7 @@ class Isotopologue(BaseMixin, models.Model):
         return str(self.formula)
 
 
-class State(BaseMixin, models.Model):
+class State(ModelMixin, models.Model):
     """A data model representing a stateful species. The stateless species is represented by the Isotopologue instance
     and its state is created by pyvalem.state compatible string.
     Only a single State instance belonging to the same Isotopologue and describing the same physical state should exist
@@ -138,27 +147,29 @@ class State(BaseMixin, models.Model):
     isotopologue = models.ForeignKey(Isotopologue, on_delete=models.CASCADE)
 
     state_str = models.CharField(max_length=64)
+    lifetime = models.FloatField(validators=[MinValueValidator(0.0)])
     energy = models.FloatField()
 
     state_html = models.CharField(max_length=64)
 
     @classmethod
-    def get_from_data(cls, isotopologue_instance, state_str):
+    def get_from_data(cls, isotopologue, state_str):
         """Example:
-            isotopologue_instance = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
+            isotopologue = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
             state_str = 'v=42'
         The state_str gets canonicalised using pyvalem package (where the __repr__ method on objects is meant to
         return a canonicalized representation of the given object).
         Only one instance for the given pair of arguments should exist in the database at any given time, otherwise it
         might lead to some inconsistent behaviour.
         """
-        return cls.objects.get(isotopologue=isotopologue_instance, state_str=cls.canonicalise_state_str(state_str))
+        return cls.objects.get(isotopologue=isotopologue, state_str=cls.canonicalise_state_str(state_str))
 
     @classmethod
-    def create_from_data(cls, isotopologue_instance, state_str, energy):
+    def create_from_data(cls, isotopologue, state_str, lifetime, energy):
         """Example:
-            isotopologue_instance = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
+            isotopologue = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
             state_str = 'v=42',
+            lifetime = 0.42e-42,
             energy = 0.42
         The state_str gets canonicalized, so the saved state_str might differ from the passed state_str. However,
         the State.get_from_data will also reflect the canonicalization, so if both methods are used, it is irrelevant
@@ -167,8 +178,8 @@ class State(BaseMixin, models.Model):
         canonicalised_state_str = cls.canonicalise_state_str(state_str)
         # Only a single instance per isotopologue and state_str should ever exist:
         try:
-            cls.objects.get(isotopologue=isotopologue_instance, state_str=canonicalised_state_str)
-            raise ValueError(f'{cls.__name__}({isotopologue_instance}, {canonicalised_state_str}) already exists!')
+            cls.objects.get(isotopologue=isotopologue, state_str=canonicalised_state_str)
+            raise ValueError(f'{cls.__name__}({isotopologue}, {canonicalised_state_str}) already exists!')
         except cls.DoesNotExist:
             pass
 
@@ -176,8 +187,8 @@ class State(BaseMixin, models.Model):
         assert species_html.startswith('M '), 'This should never be raised, only defense.'
         state_html = species_html.lstrip('M').strip()
 
-        return cls.objects.create(isotopologue=isotopologue_instance, state_str=canonicalised_state_str, energy=energy,
-                                  state_html=state_html)
+        return cls.objects.create(isotopologue=isotopologue, state_str=canonicalised_state_str,
+                                  lifetime=lifetime, energy=energy, state_html=state_html)
 
     @staticmethod
     def canonicalise_state_str(state_str):
@@ -195,44 +206,49 @@ class State(BaseMixin, models.Model):
         return f'{self.isotopologue} ({self.state_str})'
 
 
-class Lifetime(BaseMixin, models.Model):
-    state = models.ForeignKey(State, on_delete=models.CASCADE)
-
-    lifetime = models.FloatField()
-
-    @classmethod
-    def get_from_data(cls):
-        raise NotImplementedError
-
-    @classmethod
-    def create_from_data(cls):
-        raise NotImplementedError
-
-    def __str__(self):
-        return f'{str(self.state.isotopologue)}({self.state.state_str} -> G)'
-
-    def __repr__(self):
-        return self.str_to_repr(str(self.state))
-
-
-class Transition(BaseMixin, models.Model):
+class Transition(ModelMixin, models.Model):
+    """A data model representing a transition between two states as a structure for partial lifetimes and branching
+    ratios. Only a single Transition instance of any two initial and final states should exist
+    at any given time in the database. To ensure this, it is recommended to use available class methods for creating
+    new instances. The .get_from_* methods are also implemented to explicitly show what data uniquely identify each
+    Transition instance.
+    """
     initial_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_from')
     final_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_to')
 
-    lifetime = models.FloatField()
-    branching_ratio = models.FloatField()
+    partial_lifetime = models.FloatField(validators=[MinValueValidator(0.0)])
+    branching_ratio = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)])
+    d_energy = models.FloatField()
 
     @classmethod
-    def get_from_data(cls):
-        raise NotImplementedError
+    def get_from_states(cls, initial_state, final_state):
+        """Example:
+            initial_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=2'),
+            final_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=1')
+        """
+        return cls.objects.get(initial_state=initial_state, final_state=final_state)
 
     @classmethod
-    def create_from_data(cls):
-        raise NotImplementedError
+    def create_from_data(cls, initial_state, final_state, partial_lifetime, branching_ratio):
+        """Example:
+            initial_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=2'),
+            final_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=1'),
+            partial_lifetime = 0.42e-42,
+            branching_ratio = 0.42
+        """
+        if initial_state.isotopologue is not final_state.isotopologue:
+            raise ValueError(f'Transition creation failed! States {initial_state} and {final_state} '
+                             f'do not share the same isotopologue!')
+        # Only a single instance per the states pair should ever exist:
+        try:
+            cls.objects.get_from_states(initial_state, final_state)
+            raise ValueError(f'{cls.__name__}({initial_state}, {final_state}) already exists!')
+        except cls.DoesNotExist:
+            pass
+
+        return cls.objects.create(initial_state=initial_state, final_state=final_state,
+                                  partial_lifetime=partial_lifetime, branching_ratio=branching_ratio,
+                                  d_energy=final_state.energy - initial_state.energy)
 
     def __str__(self):
-        return f'{str(self.initial_state.isotopologue)}({self.initial_state.state_str} -> {self.final_state.state_str})'
-
-
-# TODO: write docstrings
-# TODO: write some unittests!
+        return f'{str(self.initial_state.isotopologue)}({self.initial_state.state_str} → {self.final_state.state_str})'

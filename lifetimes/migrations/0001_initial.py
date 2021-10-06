@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('charge', models.SmallIntegerField()),
                 ('natoms', models.SmallIntegerField()),
             ],
-            bases=(utils.models.BaseMixin, models.Model),
+            bases=(utils.models.ModelMixin, models.Model),
         ),
         migrations.CreateModel(
             name='Isotopologue',
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ('mass', models.FloatField()),
                 ('formula', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='lifetimes.formula')),
             ],
-            bases=(utils.models.BaseMixin, models.Model),
+            bases=(utils.models.ModelMixin, models.Model),
         ),
         migrations.CreateModel(
             name='State',
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 ('state_html', models.CharField(max_length=64)),
                 ('isotopologue', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='lifetimes.isotopologue')),
             ],
-            bases=(utils.models.BaseMixin, models.Model),
+            bases=(utils.models.ModelMixin, models.Model),
         ),
         migrations.CreateModel(
             name='Transition',
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
                 ('final_state', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='final_state', to='lifetimes.state')),
                 ('initial_state', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='initial_state', to='lifetimes.state')),
             ],
-            bases=(utils.models.BaseMixin, models.Model),
+            bases=(utils.models.ModelMixin, models.Model),
         ),
         migrations.CreateModel(
             name='Lifetime',
@@ -69,6 +69,6 @@ class Migration(migrations.Migration):
                 ('lifetime', models.FloatField()),
                 ('state', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='lifetimes.state')),
             ],
-            bases=(utils.models.BaseMixin, models.Model),
+            bases=(utils.models.ModelMixin, models.Model),
         ),
     ]
