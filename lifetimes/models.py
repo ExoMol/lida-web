@@ -248,7 +248,7 @@ class Transition(ModelMixin, models.Model):
                              f'do not share the same isotopologue!')
         # Only a single instance per the states pair should ever exist:
         try:
-            cls.objects.get_from_states(initial_state, final_state)
+            cls.get_from_states(initial_state, final_state)
             raise ValueError(f'{cls._meta.object_name}({initial_state}, {final_state}) already exists!')
         except cls.DoesNotExist:
             pass

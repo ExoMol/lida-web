@@ -4,6 +4,7 @@ from django.db import models
 class ModelMixin:
     id = models.AutoField(primary_key=True)
     time_added = models.DateTimeField(auto_now_add=True)
+    time_modified = models.DateTimeField(auto_now=True)
 
     def str_to_repr(self, text):
         # noinspection PyUnresolvedReferences

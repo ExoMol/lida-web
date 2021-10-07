@@ -79,3 +79,10 @@ class TestState(TestCase):
         state = 'v=0;n=2;1SIGMA-'
         for alternative_state in ['v=0;n=2;1Σ-', 'v=0;1SIGMA-;n=2', '1Σ-; v=0; n=2']:
             self.assertEqual(State.canonicalise_state_str(state), State.canonicalise_state_str(alternative_state))
+
+    def test_str(self):
+        self.assertEqual('CO2+ (v=0)', str(State.create_from_data(self.isotopologue, 'v=0', 0, 0)))
+
+    def test_repr(self):
+        s = State.create_from_data(self.isotopologue, 'v=0', 0, 0)
+        self.assertEqual(f'{s.pk}:State(CO2+ (v=0))', repr(s))
