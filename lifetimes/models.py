@@ -1,4 +1,3 @@
-from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from pyvalem.formula import Formula as PVFormula
 from pyvalem.stateful_species import StatefulSpecies as PVStatefulSpecies
@@ -152,7 +151,7 @@ class State(ModelMixin, models.Model):
     isotopologue = models.ForeignKey(Isotopologue, on_delete=models.CASCADE)
 
     state_str = models.CharField(max_length=64)
-    lifetime = models.FloatField(validators=[MinValueValidator(0.0)])
+    lifetime = models.FloatField()
     energy = models.FloatField()
 
     state_html = models.CharField(max_length=64)
@@ -188,6 +187,9 @@ class State(ModelMixin, models.Model):
         except cls.DoesNotExist:
             pass
 
+        if lifetime < 0:
+            raise ValueError(f'State lifetime needs to be positive! Passed lifetime={lifetime}!')
+
         species_html = PVStatefulSpecies(f'M {canonicalised_state_str}').html
         assert species_html.startswith('M '), 'This should never be raised, only defense.'
         state_html = species_html.lstrip('M').strip()
@@ -221,8 +223,8 @@ class Transition(ModelMixin, models.Model):
     initial_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_from_set')
     final_state = models.ForeignKey(State, on_delete=models.CASCADE, related_name='transition_to_set')
 
-    partial_lifetime = models.FloatField(validators=[MinValueValidator(0.0)])
-    branching_ratio = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)])
+    partial_lifetime = models.FloatField()
+    branching_ratio = models.FloatField()
     d_energy = models.FloatField()
 
     @classmethod
@@ -250,6 +252,12 @@ class Transition(ModelMixin, models.Model):
             raise ValueError(f'{cls._meta.object_name}({initial_state}, {final_state}) already exists!')
         except cls.DoesNotExist:
             pass
+
+        # values validation:
+        if partial_lifetime < 0:
+            raise ValueError(f'Partial lifetime needs to be positive! Passed partial_lifetime={partial_lifetime}!')
+        if branching_ratio < 0 or branching_ratio > 1:
+            raise ValueError(f'Branching ratio needs to be in [0, 1]! Passed branching_ratio={branching_ratio}!')
 
         return cls.objects.create(initial_state=initial_state, final_state=final_state,
                                   partial_lifetime=partial_lifetime, branching_ratio=branching_ratio,

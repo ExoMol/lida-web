@@ -9,6 +9,7 @@ django = "*"
 pyparsing = "*"
 pyvalem = {editable = true, path = "./../pyvalem"}
 mysqlclient = "*"
+numpy = "*"
 
 [dev-packages]
 

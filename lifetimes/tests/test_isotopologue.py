@@ -1,6 +1,5 @@
-
-import pyvalem.formula
 from django.test import TestCase
+from pyvalem.formula import FormulaParseError
 
 from lifetimes.models import Formula, Isotopologue
 
@@ -21,7 +20,7 @@ class TestIsotopologue(TestCase):
 
     def test_create_from_data_duplicate(self):
         self.assertEqual(0, len(Isotopologue.objects.all()))
-        i = Isotopologue.create_from_data(self.formula, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
+        _ = Isotopologue.create_from_data(self.formula, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
                                           version=1)
         self.assertEqual(1, len(Isotopologue.objects.all()))
         # same formula, different isotopologue formula (not allowed):
@@ -36,6 +35,11 @@ class TestIsotopologue(TestCase):
         # both different, no problem!
         Isotopologue.create_from_data(new_f, iso_formula_str='(12C)2(16O)', inchi_key='', dataset_name='', version=1)
         self.assertEqual(2, len(Isotopologue.objects.all()))
+
+    def test_create_from_data_invalid(self):
+        with self.assertRaises(FormulaParseError):
+            Isotopologue.create_from_data(self.formula, iso_formula_str='(12C)-foo-(16O)', inchi_key='',
+                                          dataset_name='', version=1)
 
     def test_get_from_formula_str(self):
         with self.assertRaises(Isotopologue.DoesNotExist):
