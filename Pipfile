@@ -10,6 +10,8 @@ pyparsing = "*"
 pyvalem = {editable = true, path = "./../pyvalem"}
 mysqlclient = "*"
 numpy = "*"
+requests = "*"
+lxml = "*"
 
 [dev-packages]
 
