@@ -16,7 +16,7 @@ class ExomolAll:
     num_molecules: int
     num_isotopologues: int
     num_datasets: int
-    molecules: list[Molecule]
+    molecules: dict[str, Molecule]
 
 
 # noinspection PyTypeHints
@@ -26,7 +26,7 @@ class Molecule:
     names: list[str]
     formula: str
     num_isotopologues: int
-    isotopologues: list[Isotopologue]
+    isotopologues: dict[str, Isotopologue]
 
 
 @dataclass
@@ -68,7 +68,7 @@ def parse_exomol_all(exomol_all_raw: str) -> ExomolAll:
 
     num_molecules = parse_line('Number of molecules in the database')
     num_molecules = int(num_molecules)
-    molecules = []
+    molecules = {}
 
     num_all_isotopologues = parse_line('Number of isotopologues in the database')
     num_all_isotopologues = int(num_all_isotopologues)
@@ -97,7 +97,7 @@ def parse_exomol_all(exomol_all_raw: str) -> ExomolAll:
 
         num_isotopologues = parse_line('Number of isotopologues considered')
         num_isotopologues = int(num_isotopologues)
-        isotopologues = []
+        isotopologues = {}
 
         # loop over the isotopologues:
         for __ in range(num_isotopologues):
@@ -108,7 +108,7 @@ def parse_exomol_all(exomol_all_raw: str) -> ExomolAll:
             version = parse_line('Version number with format YYYYMMDD')
 
             isotopologue = Isotopologue(inchi_key, iso_slug, iso_formula, dataset_name, version)
-            isotopologues.append(isotopologue)
+            isotopologues[iso_formula] = isotopologue
 
             all_datasets.add(dataset_name)
             all_isotopologues.append(isotopologue)
@@ -116,11 +116,11 @@ def parse_exomol_all(exomol_all_raw: str) -> ExomolAll:
         assert num_isotopologues == len(isotopologues)
 
         # check if all the isotopologues are in fact different (only a single dataset should be recommended):
-        if len(isotopologues) != len(set(isotopologue.iso_formula for isotopologue in isotopologues)):
+        if len(isotopologues) != len(set(isotopologue.iso_formula for isotopologue in isotopologues.values())):
             molecules_with_duplicate_isotopologues.append(formula)
 
         molecule = Molecule(num_names, names, formula, num_isotopologues, isotopologues)
-        molecules.append(molecule)
+        molecules[formula] = molecule
 
     # final assertions:
     if len(molecules_with_duplicate_isotopologues):
@@ -145,11 +145,8 @@ def parse_exomol_all(exomol_all_raw: str) -> ExomolAll:
     return ExomolAll(exomol_id, all_version, num_molecules, num_all_isotopologues, num_all_datasets, molecules)
 
 
-if __name__ == '__main__':
+# all_raw = get_exomol_all_raw()
+with open(res_root / 'exomol_all_fixed.txt', 'r') as f:
+    all_raw = str(f.read())
 
-    with open(res_root / 'exomol_all_fixed.txt', 'r') as f:
-        all_raw = str(f.read())
-
-    # all_raw = get_exomol_all_raw()
-
-    exomol_all = parse_exomol_all(all_raw)
+exomol_all = parse_exomol_all(all_raw)

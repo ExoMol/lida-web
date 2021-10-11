@@ -12,6 +12,7 @@ mysqlclient = "*"
 numpy = "*"
 requests = "*"
 lxml = "*"
+pandas = "*"
 
 [dev-packages]
 
