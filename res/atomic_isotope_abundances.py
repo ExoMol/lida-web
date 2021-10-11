@@ -44,6 +44,7 @@ def get_nist_isotope_abundances():
 
 
 # isotope_abundances = get_nist_isotope_abundances()
+# print(isotope_abundances)
 
 # Isotopes for all the elements available on the NIST page (see the function above) and sorted by abundances.
 isotope_abundances = {
