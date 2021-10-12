@@ -12,7 +12,8 @@ class TestTransition(TestCase):
         self.isotopologue = Isotopologue.create_from_data(self.formula, iso_formula_str='(12C)(16O)2',
                                                           inchi_key='inchi_key', dataset_name='name', version=1)
         self.state_high = State.create_from_data(self.isotopologue, 'v=1', lifetime=0.1, energy=0.1)
-        self.state_low = State.create_from_data(self.isotopologue, 'v=0', lifetime=np.inf, energy=-0.1)
+        self.state_low = State.create_from_data(self.isotopologue, 'v=0', lifetime=float('inf'), energy=-0.1)
+        self.state_none = State.create_from_data(self.isotopologue, '', lifetime=float('inf'), energy=0.)
 
         self.diff_formula = Formula.create_from_data(formula_str='CO', name='carbon monoxide')
         self.diff_isotopologue = Isotopologue.create_from_data(self.diff_formula, iso_formula_str='(12C)(16O)',
@@ -24,6 +25,9 @@ class TestTransition(TestCase):
         tr = Transition.objects.create(initial_state=self.state_high, final_state=self.state_low,
                                        partial_lifetime=0.42, branching_ratio=0.42, d_energy=0.42)
         self.assertEqual(str(tr), 'CO2(v=1 → v=0)')
+        tr = Transition.objects.create(initial_state=self.state_high, final_state=self.state_none,
+                                       partial_lifetime=0.42, branching_ratio=0.42, d_energy=0.42)
+        self.assertEqual(str(tr), 'CO2(v=1 → )')
 
     def test_repr(self):
         tr = Transition.objects.create(pk=42, initial_state=self.state_high, final_state=self.state_low,

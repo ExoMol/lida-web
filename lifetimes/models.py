@@ -151,7 +151,7 @@ class State(ModelMixin, models.Model):
     isotopologue = models.ForeignKey(Isotopologue, on_delete=models.CASCADE)
 
     state_str = models.CharField(max_length=64)
-    lifetime = models.FloatField()
+    lifetime = models.FloatField(null=True)  # null fields denoting float('inf') which are not supported in MySQL
     energy = models.FloatField()
 
     state_html = models.CharField(max_length=64)
@@ -187,12 +187,17 @@ class State(ModelMixin, models.Model):
         except cls.DoesNotExist:
             pass
 
-        if lifetime < 0:
+        if lifetime in {float('inf'), None}:
+            lifetime = None
+        elif lifetime < 0:
             raise ValueError(f'State lifetime needs to be positive! Passed lifetime={lifetime}!')
 
-        species_html = PVStatefulSpecies(f'M {canonicalised_state_str}').html
-        assert species_html.startswith('M '), 'This should never be raised, only defense.'
-        state_html = species_html.lstrip('M').strip()
+        if canonicalised_state_str:
+            species_html = PVStatefulSpecies(f'M {canonicalised_state_str}').html
+            assert species_html.startswith('M '), 'This should never be raised, only defense.'
+            state_html = species_html.lstrip('M').strip()
+        else:
+            state_html = ''
 
         return cls.objects.create(isotopologue=isotopologue, state_str=canonicalised_state_str,
                                   lifetime=lifetime, energy=energy, state_html=state_html)
@@ -205,12 +210,16 @@ class State(ModelMixin, models.Model):
             State.canonicalise_state_str('1SIGMA-; v=*') = '1Σ-;v=*',
             State.canonicalise_state_str('1Σ-;v=*')      = '1Σ-;v=*',
         """
+        if state_str.strip() == '':
+            return ''
         test_species = 'M'
         canonicalised_state_str = repr(PVStatefulSpecies(f'{test_species} {state_str}')).lstrip('M').strip()
         return canonicalised_state_str
 
     def __str__(self):
-        return f'{self.isotopologue} ({self.state_str})'
+        if self.state_str:
+            return f'{self.isotopologue} ({self.state_str})'
+        return f'{self.isotopologue}'
 
 
 class Transition(ModelMixin, models.Model):

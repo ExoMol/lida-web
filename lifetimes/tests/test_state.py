@@ -81,8 +81,22 @@ class TestState(TestCase):
             self.assertEqual(State.canonicalise_state_str(state), State.canonicalise_state_str(alternative_state))
 
     def test_str(self):
-        self.assertEqual('CO2+ (v=0)', str(State.create_from_data(self.isotopologue, 'v=0', 0, 0)))
+        self.assertEqual('CO (v=0)', str(State.create_from_data(self.diff_isotopologue, 'v=0', 0, 0)))
+        self.assertEqual('CO (v=1)', str(State.create_from_data(self.diff_isotopologue, 'v=1', 0, 0)))
+        self.assertEqual('CO', str(State.create_from_data(self.diff_isotopologue, '', 0, 0)))
+        self.assertEqual('CO2+ (ν1+2ν2+3ν3)', str(State.create_from_data(self.isotopologue, '1v1+2v2+3v3', 0, 0)))
+        self.assertEqual('CO2+', str(State.create_from_data(self.isotopologue, '', 0, 0)))
 
     def test_repr(self):
         s = State.create_from_data(self.isotopologue, 'v=0', 0, 0)
         self.assertEqual(f'{s.pk}:State(CO2+ (v=0))', repr(s))
+        s = State.create_from_data(self.isotopologue, '', 0, 0)
+        self.assertEqual(f'{s.pk}:State(CO2+)', repr(s))
+
+    def test_infinite_lifetime(self):
+        s = State.create_from_data(self.isotopologue, state_str='v=0', lifetime=float('inf'), energy=0)
+        self.assertEqual(s.lifetime, None)
+        s = State.create_from_data(self.isotopologue, state_str='v=2', lifetime=None, energy=0)
+        self.assertEqual(s.lifetime, None)
+        s = State.create_from_data(self.isotopologue, state_str='v=1', lifetime=42, energy=0)
+        self.assertEqual(s.lifetime, 42)
