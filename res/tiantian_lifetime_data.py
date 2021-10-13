@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+from tqdm import tqdm
 
 lifetimes_project_root = Path('/home/martin/Downloads/vibrational_lifetime-main')
 res_root = Path(__file__).parent.absolute().resolve()
@@ -25,7 +26,7 @@ def get_computed_molecules_info():
             last = lines[-1]
             assert last.startswith(mol_lab), (mol_lab, last)
             state_labels = last.split('[')[1].split(']')[0].replace("'", '')
-            df.loc[mol_lab, 'state_labels'] = state_labels
+            df.loc[mol_lab, 'state_labels'] = f'[{state_labels}]'
         except FileNotFoundError:
             continue
 
@@ -49,12 +50,15 @@ def parse_state(molecule_formula, state_raw, state_label):
     states = state_raw.lstrip('[').rstrip(']').split(',')
     states = [s.strip() for s in states]
     if state_label == '[v]':
+        assert state_label == molecules_info.at[molecule_formula, 'state_labels']
         if states[0] == '0':
             return ''
         return f'v={states[0]}'
     elif state_label in {'[v1, v2]', '[v1, v2, v3]', '[v1, v2, v3, v4, v5, v6]'}:
+        assert state_label == molecules_info.at[molecule_formula, 'state_labels']
         labels = state_label.lstrip('[').rstrip(']').split(',')
         labels = [lab.strip() for lab in labels]
+        states = [int(float(s)) for s in states]
         state_strings = []
         for quant, lab in zip(states, labels):
             if int(quant) != 0:
@@ -77,6 +81,7 @@ def get_states_info(molecule_formula):
     df = pd.read_csv(str(path), header=0)
     state_label = df.columns[0]
     state_label = str(state_label).replace("'", '')
+    # TODO: try state_label = molecules_info.at[molecule_formula, 'state_labels']
     df['state_label'] = state_label
     df.columns = ['state_raw', 'lifetime', 'state_label']
     df['state_raw'] = [a.replace("'", '') for a in df['state_raw']]
@@ -88,24 +93,41 @@ def get_states_info(molecule_formula):
 def get_transitions_info(molecule_formula):
     f = molecule_formula.replace('+', '_p')
     paths = list(lifetimes_project_root.joinpath('decay_result', f, 'v3').glob(f'{f}_*.csv'))
-    if molecule_formula in {'CS', 'PN'}:
-        # here, two paths exist, with the same file, so it's irrelevant which one!
+    if molecule_formula in {'CS', 'PN', 'SiH2'}:
+        # here, two paths exist, will take the last one (sorted by the datetime)!
         pass
     elif molecule_formula == 'SiO':
         paths = list(lifetimes_project_root.joinpath('decay_result', f, 'v3').glob('SiO_23-08-2021.csv'))
     else:
         assert len(paths) == 1
-    path = paths[0]
+    path = sorted(paths)[-1]
     df = pd.read_csv(path, header=0)
     assert list(df.columns)[:2] == ['initial_state', 'final_state']
     df.columns = ['initial_state_raw', 'final_state_raw'] + list(df.columns)[2:]
     df['initial_state_raw'] = [a.replace("'", '') for a in df['initial_state_raw']]
     df['final_state_raw'] = [a.replace("'", '') for a in df['final_state_raw']]
+
+    # some states in the transition tables do not correspond with the ones in the states tables:
+    # TODO: I need to fully understand these and treat them, currently they are just ignored!
+    if molecule_formula == 'H2O':
+        df = df.loc[df['final_state_raw'] != '[-2, -2, -2]']
+    if molecule_formula == 'H3+':
+        df = df.loc[df['final_state_raw'] != '[-1, -1]']
+        df = df.loc[df['final_state_raw'] != '[2, 1]']  # this state is not defined! Why?
+
+    state_label = molecules_info.at[molecule_formula, 'state_labels']
+    df['initial_state'] = [parse_state(molecule_formula, a, state_label) for a in df['initial_state_raw']]
+    df['final_state'] = [parse_state(molecule_formula, a, state_label) for a in df['final_state_raw']]
+
     return df
 
 
 if not __name__ == '__main__':
     def add_data_to_elida(molecule_formula):
+
+        states_info = get_states_info(molecule_formula)
+        transitions_info = get_transitions_info(molecule_formula)
+
         try:
             isotopologue = Isotopologue.get_from_formula_str(molecule_formula)
         except Isotopologue.DoesNotExist:
@@ -125,26 +147,24 @@ if not __name__ == '__main__':
                 dataset_name=dataset_name,
                 version=version
             )
-        states_info = get_states_info(molecule_formula)
-        transitions_info = get_transitions_info(molecule_formula)
 
         if len(isotopologue.state_set.all()) == 0:
             assert len(Transition.objects.filter(initial_state__isotopologue=isotopologue)) == 0, \
                 'WARNING! Inconsistency!'
             states = {}
-            for i in states_info.index:
+            print(f'Adding: States and transitions for {molecule_formula}.')
+            for i in tqdm(states_info.index):
                 state_str, lifetime, energy = states_info.loc[i, ['state', 'lifetime', 'energy']]
                 state = State.create_from_data(isotopologue, state_str, float(lifetime), float(energy))
-                states[states_info.at[i, 'state_raw']] = state
-            for i in transitions_info.index:
+                states[states_info.at[i, 'state']] = state
+            for i in tqdm(transitions_info.index):
                 ini, fin, partial_lifetime, branching_ratio = \
-                    transitions_info.loc[i, ['initial_state_raw', 'final_state_raw', 'lifetime', 'branching_ratio']]
+                    transitions_info.loc[i, ['initial_state', 'final_state', 'lifetime', 'branching_ratio']]
                 initial_state = states[ini]
                 final_state = states[fin]
                 Transition.create_from_data(initial_state, final_state, float(partial_lifetime), float(branching_ratio))
             assert len(State.objects.filter(isotopologue=isotopologue)) == len(states_info)
             assert len(Transition.objects.filter(initial_state__isotopologue=isotopologue)) == len(transitions_info)
-            print(f'Added: States and transitions for {molecule_formula}.')
         elif len(isotopologue.state_set.all()) == len(states_info):
             assert len(Transition.objects.filter(initial_state__isotopologue=isotopologue)) == \
                    len(transitions_info), 'WARNING! Inconsistency!'

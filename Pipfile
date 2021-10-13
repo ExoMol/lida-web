@@ -13,6 +13,7 @@ numpy = "*"
 requests = "*"
 lxml = "*"
 pandas = "*"
+tqdm = "*"
 
 [dev-packages]
 

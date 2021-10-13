@@ -154,7 +154,7 @@ class State(ModelMixin, models.Model):
     lifetime = models.FloatField(null=True)  # null fields denoting float('inf') which are not supported in MySQL
     energy = models.FloatField()
 
-    state_html = models.CharField(max_length=64)
+    state_html = models.CharField(max_length=128)
 
     @classmethod
     def get_from_data(cls, isotopologue, state_str):
