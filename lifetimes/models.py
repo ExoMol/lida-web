@@ -14,6 +14,7 @@ class Formula(ModelMixin, models.Model):
     # The following fields should be compatible with ExoMol database itself (and the formula_str needs to be compatible
     # with pyvalem.formula.Formula)
     formula_str = models.CharField(max_length=16)
+    slug = models.CharField(max_length=16)
     name = models.CharField(max_length=64)
 
     # The following fields are auto-filled using pyvalem package, when using the class methods below for construction
@@ -51,8 +52,9 @@ class Formula(ModelMixin, models.Model):
         except cls.DoesNotExist:
             pass
 
-        return cls.objects.create(formula_str=formula_str, name=name, html=pyvalem_formula.html,
-                                  charge=pyvalem_formula.charge, natoms=pyvalem_formula.natoms)
+        return cls.objects.create(formula_str=formula_str, slug=pyvalem_formula.slug, name=name,
+                                  html=pyvalem_formula.html, charge=pyvalem_formula.charge,
+                                  natoms=pyvalem_formula.natoms)
 
     def __str__(self):
         return self.formula_str
