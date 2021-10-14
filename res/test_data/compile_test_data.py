@@ -90,7 +90,7 @@ def get_states(formula):
     return df
 
 
-def get_transitions(formula, states):
+def get_transitions(formula, states, normalize=True):
     df_raw = pd.read_csv(file_root / 'tiantian_selected_results' / f'{formula}_transitions.csv', header=0)
     df = pd.DataFrame(index=df_raw.index,
                       columns='state_i vib_state_i state_f vib_state_f partial_lifetime branching_ratio'.split())
@@ -110,23 +110,38 @@ def get_transitions(formula, states):
     mask = (mask1a & mask1b) & (mask2a & mask2b)
     df = df.loc[mask]
     df.reset_index(drop=True, inplace=True)
+    if normalize:
+        normalize_transitions(states, df)
     return df
 
 
-def normalize_partial_lifetimes(states_df, transitions_df):
-    # TODO: this is the last thing missing from the test data
-    pass
+def normalize_transitions(states_df, transitions_df):
+    for i in states_df.index:
+        if np.isinf(states_df.loc[i, 'lifetime']):
+            continue
+        state, vib_state = states_df.loc[i, ['state', 'vib_state']]
+        a_tot = 1 / states_df.loc[i, 'lifetime']
+        trans_i = transitions_df.loc[
+            (transitions_df['state_i'] == state) & (transitions_df['vib_state_i'] == vib_state)
+            ]
+        a_i = 1 / trans_i['partial_lifetime']
+        lifetime_factor = a_tot / sum(a_i)
+        branching_factor = 1 / sum(trans_i['branching_ratio'])
+        assert sum(a_i) > 0, f'{states_df.loc[i]}'
+        mask = (transitions_df['state_i'] == state) & (transitions_df['vib_state_i'] == vib_state)
+        transitions_df.loc[mask, 'partial_lifetime'] /= lifetime_factor
+        transitions_df.loc[mask, 'branching_ratio'] *= branching_factor
 
 
 def get_data(formula):
     states = get_states(formula)
     transitions = get_transitions(formula, states)
-    normalize_partial_lifetimes(states, transitions)
     return states, transitions
 
 
 if __name__ == '__main__':
+    # for f in ['SiH2']:
     for f in ['CO', 'SiH', 'SiH2', 'SiH4']:
         s = get_states(f)
         print(s)
-        print(get_transitions(f, s))
+        print(get_transitions(f, s, normalize=True))
