@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from context import res_root
-
 import warnings
 from dataclasses import dataclass
+from pathlib import Path
 
 import requests
+
+res_dir = Path(__file__).parent.absolute().resolve()
 
 
 # noinspection PyTypeHints
@@ -146,7 +147,7 @@ def parse_exomol_all(exomol_all_raw: str) -> ExomolAll:
 
 
 # all_raw = get_exomol_all_raw()
-with open(res_root / 'exomol_all_fixed.txt', 'r') as f:
+with open(res_dir / 'exomol_all_fixed.txt', 'r') as f:
     all_raw = str(f.read())
 
 exomol_all = parse_exomol_all(all_raw)

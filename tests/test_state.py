@@ -1,18 +1,19 @@
+
+
 from django.test import TestCase
 from pyvalem.state import StateParseError
+from elida.apps.molecule.models import Molecule, Isotopologue
+from elida.apps.state.models import State
 
-from lifetimes.models import Formula, Isotopologue, State
 
-
-# Create your tests here.
 # noinspection PyTypeChecker
 class TestState(TestCase):
     def setUp(self):
-        self.formula = Formula.create_from_data(formula_str='CO2+', name='carbon dioxide ion')
-        self.isotopologue = Isotopologue.create_from_data(self.formula, iso_formula_str='(12C)(16O)2+',
+        self.molecule = Molecule.create_from_data(formula_str='CO2+', name='carbon dioxide ion')
+        self.isotopologue = Isotopologue.create_from_data(self.molecule, iso_formula_str='(12C)(16O)2+',
                                                           inchi_key='inchi_key', dataset_name='name', version=1)
-        self.diff_formula = Formula.create_from_data(formula_str='CO', name='carbon monoxide')
-        self.diff_isotopologue = Isotopologue.create_from_data(self.diff_formula, iso_formula_str='(12C)(16O)',
+        self.diff_molecule = Molecule.create_from_data(formula_str='CO', name='carbon monoxide')
+        self.diff_isotopologue = Isotopologue.create_from_data(self.diff_molecule, iso_formula_str='(12C)(16O)',
                                                                inchi_key='inchi_key', dataset_name='name',
                                                                version=1)
 

@@ -8,20 +8,19 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-file_root = Path(__file__).parent.resolve().absolute()
-res_root = file_root.parent.resolve().absolute()
-if not str(res_root) is sys.path:
-    sys.path.append(str(res_root))
+file_dir = Path(__file__).parent.resolve().absolute()
+res_dir = file_dir.parent.resolve().absolute()
+if not str(res_dir) is sys.path:
+    sys.path.append(str(res_dir))
 
-# noinspection PyUnresolvedReferences
-import context
-
-from res.test_data.compile_test_data import get_data
-from res.exomol_all import exomol_all
-from res.tiantian_lifetime_data import molecules_info
+from test_data.compile_test_data import get_data
+from exomol_all import exomol_all
+from tiantian_lifetime_data import molecules_info
 
 if __name__ != '__main__':
-    from lifetimes.models import Formula, Isotopologue, State, Transition
+    from elida.apps.molecule.models import Molecule, Isotopologue
+    from elida.apps.state.models import State
+    from elida.apps.transition.models import Transition
 
 
 def get_state_ground(states_dataframe):
@@ -71,12 +70,12 @@ if __name__ != '__main__':
                 name = molecule_names[0]
             else:
                 name = ''
-            formula = Formula.create_from_data(molecule_formula, name)
+            molecule = Molecule.create_from_data(molecule_formula, name)
             iso_formula, dataset_name = molecules_info.loc[molecule_formula, ['iso_formula', 'dataset_name']]
             inchi_key = exomol_all.molecules[molecule_formula].isotopologues[iso_formula].inchi_key
             version = exomol_all.molecules[molecule_formula].isotopologues[iso_formula].version
             isotopologue = Isotopologue.create_from_data(
-                formula=formula,
+                molecule=molecule,
                 iso_formula_str=iso_formula,
                 inchi_key=inchi_key,
                 dataset_name=dataset_name,

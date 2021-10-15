@@ -28,16 +28,13 @@ The dataframes coming from this script should adhere to the following standard:
     the States dataframe!
 """
 
-import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-file_root = Path(__file__).parent.resolve().absolute()
-res_root = file_root.parent.resolve().absolute()
-if not str(res_root) is sys.path:
-    sys.path.append(str(res_root))
+file_dir = Path(__file__).parent.resolve().absolute()
+res_dir = file_dir.parent.resolve().absolute()
 
 
 def parse_state(state_series: pd.Series, formula: str) -> pd.DataFrame:
@@ -64,7 +61,7 @@ def parse_state(state_series: pd.Series, formula: str) -> pd.DataFrame:
 
 
 def get_states(formula):
-    df_raw = pd.read_csv(file_root / 'tiantian_selected_results' / f'{formula}_states.csv', header=0)
+    df_raw = pd.read_csv(file_dir / 'tiantian_selected_results' / f'{formula}_states.csv', header=0)
     df = pd.DataFrame(index=df_raw.index, columns='state vib_state energy lifetime'.split())
     if formula == 'CO':
         state_col = "['v']"
@@ -91,7 +88,7 @@ def get_states(formula):
 
 
 def get_transitions(formula, states, normalize=True):
-    df_raw = pd.read_csv(file_root / 'tiantian_selected_results' / f'{formula}_transitions.csv', header=0)
+    df_raw = pd.read_csv(file_dir / 'tiantian_selected_results' / f'{formula}_transitions.csv', header=0)
     df = pd.DataFrame(index=df_raw.index,
                       columns='state_i vib_state_i state_f vib_state_f partial_lifetime branching_ratio'.split())
     df[['state_i', 'vib_state_i']] = parse_state(df_raw['initial_state'], formula)

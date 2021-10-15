@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class LifetimesConfig(AppConfig):
+class TransitionConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'lifetimes'
+    name = 'elida.apps.transition'
