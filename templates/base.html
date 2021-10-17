@@ -9,52 +9,88 @@
     <meta name="description" content="">
     <meta name="author" content="Martin Hanicinec">
 
+    <link rel="shortcut icon" type="image/png" href="{% static 'logo.png' %}"/>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
     <link rel="stylesheet" href="{% static "elida.css" %}">
 
     {% if title %}
-        <title>ELiDa - {{ title }}</title>
+        <title>Elida - {{ title }}</title>
     {% else %}
-        <title>ELiDa</title>
+        <title>Elida</title>
     {% endif %}
 </head>
 
-<body class="d-flex h-100 text-center text-white bg-dark">
+<body class="d-flex flex-column h-100 bg-dark text-light">
 
-<div class="main-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-    <header class="mb-auto">
-        <div>
-            <h3 class="float-md-start mb-0 align-middle"><a class="link-unstyled"
-                                                            href="{% url 'website-home' %}">Elida</a></h3>
-            <nav class="nav nav-masthead justify-content-center float-md-end">
-                <a class="nav-link{% if request.resolver_match.url_name != 'website-home' and request.resolver_match.url_name != 'website-about' and request.resolver_match.url_name != 'website-contact' %} active{% endif %}"
-                   href="{% url 'website-data' %}">Data</a>
-                <a class="nav-link{% if request.resolver_match.url_name == 'website-about' or request.resolver_match.url_name == 'website-home' %} active{% endif %}"
-                   href="{% url 'website-about' %}">About</a>
-                <a class="nav-link{% if request.resolver_match.url_name == 'website-contact' %} active{% endif %}"
-                   href="{% url 'website-contact' %}">Contact</a>
-            </nav>
+<header>
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-expand-sm navbar-dark fixed-top darker">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'website-home' %}">
+                <span class="accent-color">Elida</span>
+            </a>
+            <span class="navbar-text small ms-2">
+                <em><span class="accent-color">E</span>xomol <span class="accent-color">li</span>fetimes <span class="accent-color">da</span>tabase</em>
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                    aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name != 'website-home' and request.resolver_match.url_name != 'website-about' and request.resolver_match.url_name != 'website-contact' and request.resolver_match.url_name != 'api-about' %}active{% endif %}"
+                           href="{% url 'website-data' %}"
+                        >
+                            Data
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'website-about' or request.resolver_match.url_name == 'website-home' %}active{% endif %}"
+                           href="{% url 'website-about' %}"
+                        >
+                            About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'api-about' %}active{% endif %}"
+                           href="{% url 'api-about' %}"
+                        >
+                            API
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'website-contact' %}active{% endif %}"
+                           href="{% url 'website-contact' %}"
+                        >
+                            Contact
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
-    </header>
+    </nav>
+</header>
 
-    <main class="px-3">
+<!-- Begin page content -->
+<main class="flex-shrink-0">
+    <div class="container mt-5 pt-4 ps-4">
+        {% block content %}{% endblock %}
+    </div>
+</main>
 
-        <p>
-            {% block content %}{% endblock %}
-        </p>
-
-    </main>
-
-    <footer class="mt-auto text-white-50">
-        <p>Elida is funded by ... (some logos as well?)</p>
-    </footer>
-</div>
+<footer class="footer mt-auto py-3 darker">
+    <div class="container">
+        <span class="text-muted small">Footer text.</span>
+    </div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
-</body>
 
+</body>
 </html>
