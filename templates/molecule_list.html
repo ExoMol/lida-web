@@ -1,0 +1,26 @@
+{% extends "base_datatable.html" %}
+
+{% block table %}
+    <thead>
+    <tr>
+        <th scope="col">Molecule</th>
+        <th scope="col"><em>N</em><sub>atoms</sub></th>
+        <th scope="col"><em>m</em> (amu)</th>
+        <th scope="col">States</th>
+        <th scope="col">Transitions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for molecule in object_list %}
+        <tr>
+            <td><a href="{% url 'molecule-detail-slug' molecule.slug %}">{{ molecule.html }}</a></td>
+            <td>{{ molecule.natoms }}</td>
+            <td>{{ molecule.isotopologue.mass|floatformat:-2 }}</td>
+            <td><a href="{% url 'state-list' molecule.slug %}">
+                {{ molecule.isotopologue.state_set.count }}
+            </a></td>
+            <td>{{ molecule.isotopologue.transition_set.count }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+{% endblock table %}

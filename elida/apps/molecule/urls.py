@@ -1,7 +1,7 @@
-
 from django.urls import path
-from . import views
+from .views import MoleculeListView, MoleculeDetailView
 
 urlpatterns = [
-    path('', views.details, name='molecule-details')
+    path('all/', MoleculeListView.as_view(), name='molecule-all'),
+    path('<str:slug>/', MoleculeDetailView.as_view(), name='molecule-detail-slug'),
 ]

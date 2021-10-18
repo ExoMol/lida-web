@@ -1,4 +1,5 @@
 {% load static %}
+{% load nav_items %}
 
 <!doctype html>
 <html lang="en" class="h-100">
@@ -27,12 +28,12 @@
 
 <header>
     <!-- Fixed navbar -->
-    <nav class="navbar navbar-expand-sm navbar-dark fixed-top darker">
+    <nav class="navbar navbar-expand-sm navbar-dark darker">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'website-home' %}">
+            <a class="navbar-brand me-5" href="{% url 'website-home' %}">
                 <span class="accent-color">Elida</span>
             </a>
-            <span class="navbar-text small ms-2">
+            <span class="navbar-text small text-white">
                 <em><span class="accent-color">E</span>xomol <span class="accent-color">li</span>fetimes <span class="accent-color">da</span>tabase</em>
             </span>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
@@ -42,28 +43,28 @@
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name != 'website-home' and request.resolver_match.url_name != 'website-about' and request.resolver_match.url_name != 'website-contact' and request.resolver_match.url_name != 'api-about' %}active{% endif %}"
-                           href="{% url 'website-data' %}"
+                        <a class="nav-link{% data_active request %}"
+                           href="{% url 'molecule-all' %}"
                         >
                             Data
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'website-about' or request.resolver_match.url_name == 'website-home' %}active{% endif %}"
+                        <a class="nav-link{% about_active request %}"
                            href="{% url 'website-about' %}"
                         >
                             About
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'api-about' %}active{% endif %}"
+                        <a class="nav-link{% api_active request %}"
                            href="{% url 'api-about' %}"
                         >
                             API
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'website-contact' %}active{% endif %}"
+                        <a class="nav-link {% contact_active request %}"
                            href="{% url 'website-contact' %}"
                         >
                             Contact
@@ -77,7 +78,7 @@
 
 <!-- Begin page content -->
 <main class="flex-shrink-0">
-    <div class="container mt-5 pt-4 ps-4">
+    <div class="container p-5">
         {% block content %}{% endblock %}
     </div>
 </main>

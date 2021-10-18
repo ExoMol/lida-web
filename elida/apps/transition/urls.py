@@ -1,7 +1,8 @@
-
 from django.urls import path
-from . import views
+from .views import TransitionDetailView, TransitionToListView, TransitionFromListView
 
 urlpatterns = [
-    path('', views.details, name='transition-details')
+    path('list/from_state/<int:state_pk>/', TransitionFromListView.as_view(), name='transition-list-from-state'),
+    path('list/to_state/<int:state_pk>/', TransitionToListView.as_view(), name='transition-list-to-state'),
+    path('<int:pk>/', TransitionDetailView.as_view(), name='transition-detail-pk'),
 ]

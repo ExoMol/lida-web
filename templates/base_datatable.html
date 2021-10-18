@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% autoescape off %}
+        <div class="table-responsive-sm">
+            <table class="table table-sm table-dark table-hover">
+                {% block table %}
+                {% endblock table %}
+            </table>
+        </div>
+    {% endautoescape %}
+{% endblock content %}

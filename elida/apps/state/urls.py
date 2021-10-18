@@ -1,7 +1,8 @@
 
 from django.urls import path
-from . import views
+from .views import StateDetailView, StateListView
 
 urlpatterns = [
-    path('', views.details, name='state-details')
+    path('<int:pk>/', StateDetailView.as_view(), name='state-detail-pk'),
+    path('list/<str:mol_slug>/', StateListView.as_view(), name='state-list')
 ]

@@ -1,5 +1,10 @@
 .accent-color {
-    color: rgb(0, 255, 0);
+    color: rgb(19, 143, 52);
+    font-weight: bold;
+}
+
+.table > :not(:first-child) {
+  border-top-color: rgb(19, 143, 52);
 }
 
 .darker {

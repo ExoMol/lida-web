@@ -58,6 +58,10 @@ class Molecule(ModelMixin, models.Model):
     def __str__(self):
         return self.formula_str
 
+    @property
+    def mass(self):
+        return self.isotopologue.mass
+
 
 class Isotopologue(ModelMixin, models.Model):
     """A data model representing a particular isotopologue belonging to the corresponding Molecule instance.
@@ -138,6 +142,11 @@ class Isotopologue(ModelMixin, models.Model):
         return cls.objects.create(molecule=molecule, iso_formula_str=iso_formula_str,
                                   iso_slug=pyvalem_formula.slug, inchi_key=inchi_key, dataset_name=dataset_name,
                                   version=version, html=pyvalem_formula.html, mass=pyvalem_formula.mass)
+
+    @property
+    def transition_set(self):
+        from elida.apps.transition.models import Transition
+        return Transition.objects.filter(initial_state__isotopologue=self)
 
     def __str__(self):
         return str(self.molecule)

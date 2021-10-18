@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% autoescape off %}
+        <h1>Molecule details: {{ object.html }}</h1>
+    {% endautoescape %}
+{% endblock content %}

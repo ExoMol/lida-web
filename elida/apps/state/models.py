@@ -84,3 +84,7 @@ class State(ModelMixin, models.Model):
         if self.state_str:
             return f'{self.isotopologue} ({self.state_str})'
         return f'{self.isotopologue}'
+
+    @property
+    def species_html(self):
+        return f'{self.isotopologue.molecule.html} {self.state_html}'

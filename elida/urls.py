@@ -18,9 +18,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('elida.apps.website.urls')),
     path('api/', include('elida.apps.api.urls')),
-    path('molecule/', include('elida.apps.molecule.urls')),
-    path('state/', include('elida.apps.state.urls')),
-    path('transition/', include('elida.apps.transition.urls')),
+    path('', include('elida.apps.website.urls')),
 ]

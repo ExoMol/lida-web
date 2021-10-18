@@ -6,7 +6,7 @@ def home(request):
 
 
 def data(request):
-    return render(request, 'wibsite_data.html', context={'title': 'Data'})
+    return render(request, 'molecule_list.html', context={'title': 'Data'})
 
 
 def about(request):

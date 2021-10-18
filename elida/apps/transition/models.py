@@ -56,3 +56,7 @@ class Transition(ModelMixin, models.Model):
 
     def __str__(self):
         return f'{str(self.initial_state.isotopologue)}({self.initial_state.state_str} → {self.final_state.state_str})'
+
+    @property
+    def transition_html(self):
+        return str(self)

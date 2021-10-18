@@ -1,0 +1,22 @@
+{% extends "base_datatable.html" %}
+
+{% block table %}
+    <thead>
+    <tr>
+        <th scope="col">Transition</th>
+        <th scope="col">Δ<em>E</em> (eV)</th>
+        <th scope="col">Partial lifetime (s)</th>
+        <th scope="col">Branching ratio</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for transition in object_list %}
+        <tr>
+            <td><a href="{% url 'transition-detail-pk' transition.pk %}">{{ transition.transition_html }}</a></td>
+            <td>{{ transition.d_energy|floatformat:-3 }}</td>
+            <td>{{ transition.partial_lifetime|stringformat:".2e" }}</td>
+            <td>{{ transition.branching_ratio|stringformat:".2e" }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+{% endblock table %}

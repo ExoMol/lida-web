@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% autoescape off %}
+        <h1>State details: {{ object.species_html}}</h1>
+    {% endautoescape %}
+{% endblock content %}
