@@ -13,6 +13,7 @@ class TransitionDetailView(DetailView):
 
 class TransitionListView(ListView):
     template_name = 'transition_list.html'
+    paginate_by = 20
 
     header_appendix = ''
 

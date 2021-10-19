@@ -14,4 +14,28 @@
             </table>
         </div>
     {% endautoescape %}
+
+    {% if is_paginated %}
+        <div class="float-end">
+            {% if page_obj.has_previous %}
+                <a class="btn btn-sm btn-outline-light" href="?page=1">&laquo;&laquo;</a>
+                <a class="btn btn-sm btn-outline-light" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+            {% endif %}
+            <div class="btn-group" role="group">
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <a class="btn btn-sm btn-light" href="?page={{ num }}">{{ num }}</a>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a class="btn btn-sm btn-outline-light" href="?page={{ num }}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% if page_obj.has_next %}
+                <a class="btn btn-sm btn-outline-light" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+                <a class="btn btn-sm btn-outline-light"
+                   href="?page={{ page_obj.paginator.num_pages }}">&raquo;&raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+
 {% endblock content %}

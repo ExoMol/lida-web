@@ -10,3 +10,14 @@
 .darker {
     background-color: rgba(0, 0, 0, 0.1);
 }
+
+.elida-link {
+    color: rgba(19, 143, 52);
+    text-decoration: none;
+}
+
+.elida-link:hover {
+    color: rgba(19, 143, 52);
+    text-decoration: none;
+    font-weight: bold;
+}
