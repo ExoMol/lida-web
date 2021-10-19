@@ -13,7 +13,7 @@
     <tbody>
     {% for state in object_list %}
         <tr>
-            <td><a href="{% url 'state-detail-pk' state.pk %}">{{ state.species_html }}</a></td>
+            <td><a href="{% url 'state-detail-pk' state.pk %}">{{ state.state_html }}</a></td>
             <td>{{ state.energy|floatformat:-3 }}</td>
             <td>{{ state.lifetime|stringformat:".2e" }}</td>
             <td><a href="{% url 'transition-list-from-state' state.pk %}">{{ state.transition_from_set.count }}</a></td>

@@ -19,7 +19,9 @@
             <td><a href="{% url 'state-list' molecule.slug %}">
                 {{ molecule.isotopologue.state_set.count }}
             </a></td>
-            <td>{{ molecule.isotopologue.transition_set.count }}</td>
+            <td><a href="{% url 'transition-list-mol_slug' molecule.slug %}">
+                {{ molecule.isotopologue.transition_set.count }}
+            </a></td>
         </tr>
     {% endfor %}
     </tbody>
