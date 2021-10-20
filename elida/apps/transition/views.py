@@ -8,7 +8,7 @@ from elida.apps.molecule.models import Molecule
 class TransitionDetailView(DetailView):
     model = Transition
     template_name = 'transition_detail.html'
-    extra_context = {'title': 'Transition'}
+    extra_context = {'title': 'Transition details'}
 
 
 class TransitionListView(ListView):

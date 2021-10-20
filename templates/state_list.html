@@ -13,7 +13,10 @@
     <tbody>
     {% for state in object_list %}
         <tr>
-            <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link">{{ state.state_html }}</a></td>
+            <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link" target="_blank"
+                   rel="noopener noreferrer">
+                {{ state.state_html }}
+            </a></td>
             <td>{{ state.energy|floatformat:-3 }}</td>
             <td>{{ state.lifetime|stringformat:".2e" }}</td>
             <td>

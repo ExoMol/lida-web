@@ -1,7 +1,65 @@
-{% extends "base.html" %}
+{% extends "base_detail.html" %}
 
-{% block content %}
-    {% autoescape off %}
-        <h1>State details: {{ object.species_html}}</h1>
-    {% endautoescape %}
-{% endblock content %}
+{% block detail_heading %}
+    State details: {{ object.species_html }}
+{% endblock detail_heading %}
+
+{% block table_body %}
+    <tr>
+        <td class="text-end pe-3" style="width: 50%"><b>Molecule:</b></td>
+        <td class="text-start ps-3" style="width: 50%">
+            <a
+                    href="{% url 'molecule-detail-slug' object.isotopologue.molecule.slug %}"
+                    class="elida-link"
+                    target="_blank" rel="noopener noreferrer"
+            >
+                {{ object.isotopologue.molecule.html }}
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <td class="text-end pe-3" style="width: 50%"><b>State:</b></td>
+        <td class="text-start ps-3" style="width: 50%">{{ object.state_html }}</td>
+    </tr>
+    <tr>
+        <td class="text-end pe-3" style="width: 50%"><b>Energy (eV):</b></td>
+        <td class="text-start ps-3" style="width: 50%">{{ object.energy|floatformat:-5 }}</td>
+    </tr>
+    <tr>
+        <td class="text-end pe-3" style="width: 50%"><b>Lifetime (s):</b></td>
+        <td class="text-start ps-3" style="width: 50%">{{ object.lifetime|stringformat:".2e" }}</td>
+    </tr>
+    <tr>
+        <td class="text-end pe-3" style="width: 50%"><b>Transitions from the state:</b></td>
+        <td class="text-start ps-3" style="width: 50%">
+            {% if object.transition_from_set.count %}
+                <a
+                        href="{% url 'transition-list-from-state' object.pk %}"
+                        class="elida-link"
+                        target="_blank" rel="noopener noreferrer"
+                >
+                    {{ object.transition_from_set.count }}
+                </a>
+            {% else %}
+                0
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td class="text-end pe-3" style="width: 50%"><b>Transitions to the state:</b></td>
+        <td class="text-start ps-3" style="width: 50%">
+            {% if object.transition_to_set.count %}
+                <a
+                        href="{% url 'transition-list-to-state' object.pk %}"
+                        class="elida-link"
+                        target="_blank" rel="noopener noreferrer"
+                >
+                    {{ object.transition_to_set.count }}
+                </a>
+            {% else %}
+                0
+            {% endif %}
+        </td>
+    </tr>
+
+{% endblock table_body %}

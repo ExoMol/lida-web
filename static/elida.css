@@ -1,10 +1,15 @@
+:root {
+    --accent-color: rgb(19, 143, 52);
+    --link-hover-color: rgba(19, 143, 52, 0.7);
+}
+
 .accent-color {
-    color: rgb(19, 143, 52);
+    color: var(--accent-color);
     font-weight: bold;
 }
 
 .table > :not(:first-child) {
-  border-top-color: rgb(19, 143, 52);
+  border-top-color: var(--accent-color);
 }
 
 .darker {
@@ -12,12 +17,11 @@
 }
 
 .elida-link {
-    color: rgba(19, 143, 52);
+    color: var(--accent-color);
     text-decoration: none;
 }
 
 .elida-link:hover {
-    color: rgba(19, 143, 52);
+    color: var(--link-hover-color);
     text-decoration: none;
-    font-weight: bold;
 }

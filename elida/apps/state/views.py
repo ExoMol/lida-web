@@ -6,7 +6,7 @@ from elida.apps.molecule.models import Molecule
 class StateDetailView(DetailView):
     model = State
     template_name = 'state_detail.html'
-    extra_context = {'title': 'State'}
+    extra_context = {'title': 'State details'}
 
 
 class StateListView(ListView):
