@@ -13,8 +13,9 @@
     <tbody>
     {% for molecule in object_list %}
         <tr>
-            <td><a href="{% url 'molecule-detail-slug' molecule.slug %}" class="elida-link" target="_blank"
-                   rel="noopener noreferrer">
+            <td><a href="{% url 'molecule-detail-slug' molecule.slug %}" class="elida-link"
+{#                   target="_blank" rel="noopener noreferrer"#}
+            >
                 {{ molecule.html }}
             </a></td>
             <td>{{ molecule.natoms }}</td>

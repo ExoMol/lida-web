@@ -31,7 +31,7 @@
             <a
                     href="{% url 'state-list' object.slug %}"
                     class="elida-link"
-                    target="_blank" rel="noopener noreferrer"
+{#                    target="_blank" rel="noopener noreferrer"#}
             >
                 {{ molecule.isotopologue.state_set.count }}
             </a>
@@ -43,7 +43,7 @@
             <a
                     href="{% url 'transition-list-mol_slug' object.slug %}"
                     class="elida-link"
-                    target="_blank" rel="noopener noreferrer"
+{#                    target="_blank" rel="noopener noreferrer"#}
             >
                 {{ molecule.isotopologue.transition_set.count }}
             </a>
@@ -55,7 +55,7 @@
             <a
                     href="https://www.exomol.com/data/molecules/{{ object.slug }}/{{ object.isotopologue.iso_slug }}/{{ object.isotopologue.dataset_name }}"
                     class="elida-link"
-                    target="_blank" rel="noopener noreferrer"
+{#                    target="_blank" rel="noopener noreferrer"#}
             >
                 {{ object.isotopologue.dataset_name }}
             </a>

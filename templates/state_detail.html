@@ -11,7 +11,7 @@
             <a
                     href="{% url 'molecule-detail-slug' object.isotopologue.molecule.slug %}"
                     class="elida-link"
-                    target="_blank" rel="noopener noreferrer"
+{#                    target="_blank" rel="noopener noreferrer"#}
             >
                 {{ object.isotopologue.molecule.html }}
             </a>
@@ -36,7 +36,7 @@
                 <a
                         href="{% url 'transition-list-from-state' object.pk %}"
                         class="elida-link"
-                        target="_blank" rel="noopener noreferrer"
+{#                        target="_blank" rel="noopener noreferrer"#}
                 >
                     {{ object.transition_from_set.count }}
                 </a>
@@ -52,7 +52,7 @@
                 <a
                         href="{% url 'transition-list-to-state' object.pk %}"
                         class="elida-link"
-                        target="_blank" rel="noopener noreferrer"
+{#                        target="_blank" rel="noopener noreferrer"#}
                 >
                     {{ object.transition_to_set.count }}
                 </a>
