@@ -2,7 +2,7 @@ from pyvalem.state_parser import MolecularTermSymbol, VibrationalState
 from .exceptions import StateError
 
 
-def parse_and_validate_vib_state_str(vib_state_str):
+def validate_and_parse_vib_state_str(vib_state_str):
     """Helper function validating and parsing the vib_state_str.
     Returns dimensionality of the vibrational excitation, and two html representations. Raises StateError whenever the
     passed vib_state_str is not in exactly the correct format.
@@ -47,13 +47,21 @@ def parse_and_validate_vib_state_str(vib_state_str):
     return vib_state_dim, vib_state_html, vib_state_html_alt
 
 
-def canonicalise_el_state_str(el_state_str):
+def canonicalise_and_parse_el_state_str(el_state_str):
     """Helper function canonicalizing the el_state_str using the pyvalem package.
     Example:
         canonicalise_el_state_str('1SIGMA-')  = '1Σ-',
     """
     el_state_str = el_state_str.strip()
-    if el_state_str.strip() == '':
+    if el_state_str == '':
         return ''
-    canonicalised_state_str = repr(MolecularTermSymbol(el_state_str))
-    return canonicalised_state_str
+    el_state = MolecularTermSymbol(el_state_str)
+    canonicalised_el_state_str = repr(el_state)
+    el_state_html = el_state.html
+    return canonicalised_el_state_str, el_state_html
+
+
+def get_state_str(isotopologue, el_state_str, vib_state_str):
+    molecule_str = str(isotopologue.molecule)
+    state_str = ';'.join(s for s in [el_state_str, vib_state_str] if s)
+    return f'{molecule_str} {state_str}'

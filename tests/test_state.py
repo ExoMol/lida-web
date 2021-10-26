@@ -1,5 +1,5 @@
 from django.test import TestCase
-from elida.apps.state.utils import parse_and_validate_vib_state_str, canonicalise_el_state_str
+from elida.apps.state.utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str
 from elida.apps.state.exceptions import StateError
 from pyvalem.state import StateParseError
 from elida.apps.molecule.models import Molecule, Isotopologue
@@ -8,25 +8,25 @@ from elida.apps.state.models import State
 
 class TestUtils(TestCase):
     def test_vib_state_str_valid(self):
-        self.assertEqual((0, '', ''), parse_and_validate_vib_state_str(''))
-        self.assertEqual((1, '<i>v</i>=0', '<i>v</i>=0'), parse_and_validate_vib_state_str('0'))
-        self.assertEqual((1, '<i>v</i>=1', '<i>v</i>=1'), parse_and_validate_vib_state_str('1'))
-        self.assertEqual((1, '<i>v</i>=456', '<i>v</i>=456'), parse_and_validate_vib_state_str('456'))
+        self.assertEqual((0, '', ''), validate_and_parse_vib_state_str(''))
+        self.assertEqual((1, '<i>v</i>=0', '<i>v</i>=0'), validate_and_parse_vib_state_str('0'))
+        self.assertEqual((1, '<i>v</i>=1', '<i>v</i>=1'), validate_and_parse_vib_state_str('1'))
+        self.assertEqual((1, '<i>v</i>=456', '<i>v</i>=456'), validate_and_parse_vib_state_str('456'))
         self.assertEqual(
             (3, 'ν<sub>1</sub> + ν<sub>2</sub> + ν<sub>3</sub>', '<b><i>v</i></b>=(1, 1, 1)'),
-            parse_and_validate_vib_state_str('(1, 1, 1)')
+            validate_and_parse_vib_state_str('(1, 1, 1)')
         )
         self.assertEqual(
             (4, '5ν<sub>3</sub>', '<b><i>v</i></b>=(0, 0, 5, 0)'),
-            parse_and_validate_vib_state_str('(0, 0, 5, 0)')
+            validate_and_parse_vib_state_str('(0, 0, 5, 0)')
         )
         self.assertEqual(
             (3, '<b><i>v</i></b>=<b>0</b>', '<b><i>v</i></b>=<b>0</b>'),
-            parse_and_validate_vib_state_str('(0, 0, 0)')
+            validate_and_parse_vib_state_str('(0, 0, 0)')
         )
         self.assertEqual(
             (2, '<b><i>v</i></b>=<b>0</b>', '<b><i>v</i></b>=<b>0</b>'),
-            parse_and_validate_vib_state_str('(0, 0)')
+            validate_and_parse_vib_state_str('(0, 0)')
         )
 
     def test_vib_state_str_invalid(self):
@@ -39,7 +39,7 @@ class TestUtils(TestCase):
         for arg in illegal_arguments:
             with self.subTest(arg=arg):
                 with self.assertRaises(StateError):
-                    parse_and_validate_vib_state_str(arg)
+                    validate_and_parse_vib_state_str(arg)
 
     def test_vib_state_str_illegal_type(self):
         illegal_arguments = [
@@ -48,10 +48,10 @@ class TestUtils(TestCase):
         for arg in illegal_arguments:
             with self.subTest(arg=arg):
                 with self.assertRaises(TypeError):
-                    parse_and_validate_vib_state_str(arg)
+                    validate_and_parse_vib_state_str(arg)
 
     def test_el_state_canonicalisation(self):
-        self.assertEqual('1Σ-', canonicalise_el_state_str(' 1SIGMA- '))
+        self.assertEqual('1Σ-', canonicalise_and_parse_el_state_str(' 1SIGMA- ')[0])
 
 
 # # noinspection PyTypeChecker
@@ -151,19 +151,19 @@ class TestUtils(TestCase):
 #             self.assertEqual(State.canonicalise_state_str(state, 'vib'),
 #                              State.canonicalise_state_str(alternative_state, 'vib'))
 #
-#     def test_str(self):
-#         self.assertEqual('CO (v=0)', str(State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='v=0')))
-#         self.assertEqual('CO (v=1)', str(State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='v=1')))
-#         self.assertEqual('CO', str(State.create_from_data(self.diff_isotopologue, 0, 0)))
-#         self.assertEqual('CO2+ (ν1+2ν2+3ν3)', str(State.create_from_data(self.isotopologue,
-#                                                                          0, 0, vib_state_str='1v1+2v2+3v3')))
-#         self.assertEqual('CO2+', str(State.create_from_data(self.isotopologue, 0, 0)))
-#
-#     def test_repr(self):
-#         s = State.create_from_data(self.isotopologue, 'v=0', 0, 0)
-#         self.assertEqual(f'{s.pk}:State(CO2+ (v=0))', repr(s))
-#         s = State.create_from_data(self.isotopologue, '', 0, 0)
-#         self.assertEqual(f'{s.pk}:State(CO2+)', repr(s))
+    # def test_str(self):
+    #     self.assertEqual('CO (v=0)', str(State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='v=0')))
+    #     self.assertEqual('CO (v=1)', str(State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='v=1')))
+    #     self.assertEqual('CO', str(State.create_from_data(self.diff_isotopologue, 0, 0)))
+    #     self.assertEqual('CO2+ (ν1+2ν2+3ν3)', str(State.create_from_data(self.isotopologue,
+    #                                                                      0, 0, vib_state_str='1v1+2v2+3v3')))
+    #     self.assertEqual('CO2+', str(State.create_from_data(self.isotopologue, 0, 0)))
+    #
+    # def test_repr(self):
+    #     s = State.create_from_data(self.isotopologue, 'v=0', 0, 0)
+    #     self.assertEqual(f'{s.pk}:State(CO2+ (v=0))', repr(s))
+    #     s = State.create_from_data(self.isotopologue, '', 0, 0)
+    #     self.assertEqual(f'{s.pk}:State(CO2+)', repr(s))
 #
 #     def test_infinite_lifetime(self):
 #         s = State.create_from_data(self.isotopologue, state_str='v=0', lifetime=float('inf'), energy=0)

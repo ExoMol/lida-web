@@ -2,7 +2,7 @@ from django.db import models
 from pyvalem.formula import Formula as PVFormula
 
 from elida.apps.mixins import ModelMixin
-from elida.apps.state.utils import canonicalise_el_state_str
+from elida.apps.state.utils import canonicalise_and_parse_el_state_str
 from .exceptions import MoleculeError
 
 
@@ -168,7 +168,7 @@ class Isotopologue(ModelMixin, models.Model):
         The state string gets canonicalised the same way as when saving new State instance.
         The ground state NEEDS to be saved manually, before any State instances containing el_state_str fields are
         attached to this Isotopologue, otherwise errors will be raised."""
-        self.ground_el_state_str = canonicalise_el_state_str(ground_el_state_str)
+        self.ground_el_state_str, _ = canonicalise_and_parse_el_state_str(ground_el_state_str)
         self.save()
 
     def set_vib_state_dim(self, vib_state_dim):
