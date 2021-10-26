@@ -103,7 +103,7 @@ class State(ModelMixin, models.Model):
             raise StateError(f'Passed lifetime={lifetime} for State "{state_str}" is not positive!')
 
         if vib_state_dim:
-            if not isotopologue.transition_set.count:
+            if not isotopologue.state_set.count():
                 # first State being saved for the given isotopologue
                 isotopologue.set_vib_state_dim(vib_state_dim)
             elif isotopologue.vib_state_dim != vib_state_dim:
@@ -111,11 +111,24 @@ class State(ModelMixin, models.Model):
                     f'Vibrational dimension {vib_state_dim} of the state {state_str} does not match the vibrational '
                     f'dimension of the isotopologue {isotopologue}: {isotopologue.vib_state_dim}!'
                 )
+        elif isotopologue.vib_state_dim > 0:
+            raise StateError(
+                f'Isotopologue {isotopologue} expects vibrational dimension {isotopologue.vib_state_dim}, but State '
+                f'{state_str} does not resolve vibrational states!'
+            )
+
         if el_state_str and not isotopologue.ground_el_state_str:
             raise StateError(
                 f'Before saving State "{state_str}", ground_el_state_str needs to be saved for Isotopologue '
                 f'{isotopologue}! Use Isotopologue.set_ground_el_state_str() once before saving any states resolving '
                 f'electronic excitation.'
+            )
+        elif not el_state_str and isotopologue.ground_el_state_str:
+            raise StateError(
+                f'Isotopologue {isotopologue} has ground state defined and no electronic state is passed to the State'
+                f'{state_str}! This is not allowed for consistency, all the states belonging to one Isotopologue must '
+                f'define either vib_state_str, or el_state_str, or both. This is reflected by Isotopologue instance '
+                f'by having vib_state_dim > 0 or non-empty ground_el_state_str.'
             )
 
         return cls.objects.create(

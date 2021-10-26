@@ -54,7 +54,7 @@ def canonicalise_and_parse_el_state_str(el_state_str):
     """
     el_state_str = el_state_str.strip()
     if el_state_str == '':
-        return ''
+        return '', ''
     el_state = MolecularTermSymbol(el_state_str)
     canonicalised_el_state_str = repr(el_state)
     el_state_html = el_state.html
@@ -63,5 +63,5 @@ def canonicalise_and_parse_el_state_str(el_state_str):
 
 def get_state_str(isotopologue, el_state_str, vib_state_str):
     molecule_str = str(isotopologue.molecule)
-    state_str = ';'.join(s for s in [el_state_str, vib_state_str] if s)
+    state_str = ';'.join(s for s in [el_state_str, f'v={vib_state_str.replace(" ", "")}'] if s)
     return f'{molecule_str} {state_str}'
