@@ -16,10 +16,16 @@
             <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link"
 {#                   target="_blank" rel="noopener noreferrer"#}
             >
-                {{ state.state_html }}
+                {{ state.species_html_alt }}
             </a></td>
             <td>{{ state.energy|floatformat:-3 }}</td>
-            <td>{{ state.lifetime|stringformat:".2e" }}</td>
+            <td>
+                {% if state.lifetime is None %}
+                    ∞
+                {% else %}
+                    {{ state.lifetime|stringformat:".2e" }}
+                {% endif %}
+            </td>
             <td>
                 {% if state.transition_from_set.count %}
                     <a href="{% url 'transition-list-from-state' state.pk %}" class="elida-link">

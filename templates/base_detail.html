@@ -2,16 +2,20 @@
 
 {% block content %}
     {% autoescape off %}
-        <div class="container pb-2">
-            <h4 class="text-center">
-                {% block detail_heading %}
-                {% endblock detail_heading %}
-            </h4>
-        </div>
         <div class="table-responsive-lg pt-3">
             <table class="table table-sm table-borderless table-dark table-hover">
 
-                <thead></thead>
+                <thead>
+                <tr>
+                    <th scope="col" class="text-end pe-3 pb-2" style="width: 50%">
+                        <h4>{{ object.model_name }} details:</h4>
+                    </th>
+                    <th scope="col" class="text-start ps-3 pb-2" style="width: 50%">
+                        <h4>{{ object.html }}</h4>
+                    </th>
+
+                </tr>
+                </thead>
 
                 <tbody>
                 {% block table_body %}

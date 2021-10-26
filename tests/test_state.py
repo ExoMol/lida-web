@@ -9,24 +9,24 @@ from elida.apps.state.utils import validate_and_parse_vib_state_str, canonicalis
 
 class TestUtils(TestCase):
     def test_vib_state_str_valid(self):
-        self.assertEqual((0, '', ''), validate_and_parse_vib_state_str(''))
-        self.assertEqual((1, '<i>v</i>=0', '<i>v</i>=0'), validate_and_parse_vib_state_str('0'))
-        self.assertEqual((1, '<i>v</i>=1', '<i>v</i>=1'), validate_and_parse_vib_state_str('1'))
-        self.assertEqual((1, '<i>v</i>=456', '<i>v</i>=456'), validate_and_parse_vib_state_str('456'))
+        self.assertEqual((0, ''), validate_and_parse_vib_state_str(''))
+        self.assertEqual((1, '<i>v</i>=0'), validate_and_parse_vib_state_str('0'))
+        self.assertEqual((1, '<i>v</i>=1'), validate_and_parse_vib_state_str('1'))
+        self.assertEqual((1, '<i>v</i>=456'), validate_and_parse_vib_state_str('456'))
         self.assertEqual(
-            (3, 'ν<sub>1</sub> + ν<sub>2</sub> + ν<sub>3</sub>', '<b><i>v</i></b>=(1, 1, 1)'),
+            (3, 'ν<sub>1</sub> + ν<sub>2</sub> + ν<sub>3</sub>'),
             validate_and_parse_vib_state_str('(1, 1, 1)')
         )
         self.assertEqual(
-            (4, '5ν<sub>3</sub>', '<b><i>v</i></b>=(0, 0, 5, 0)'),
+            (4, '5ν<sub>3</sub>'),
             validate_and_parse_vib_state_str('(0, 0, 5, 0)')
         )
         self.assertEqual(
-            (3, '<b><i>v</i></b>=<b>0</b>', '<b><i>v</i></b>=<b>0</b>'),
+            (3, '<b><i>v</i></b>=<b>0</b>'),
             validate_and_parse_vib_state_str('(0, 0, 0)')
         )
         self.assertEqual(
-            (2, '<b><i>v</i></b>=<b>0</b>', '<b><i>v</i></b>=<b>0</b>'),
+            (2, '<b><i>v</i></b>=<b>0</b>'),
             validate_and_parse_vib_state_str('(0, 0)')
         )
 
@@ -247,7 +247,7 @@ class TestState(TestCase):
         s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='(0, 0, 0)')
         self.assertEqual(s.vib_state_str, '(0, 0, 0)')
         self.assertEqual(s.vib_state_html, '<b><i>v</i></b>=<b>0</b>')
-        self.assertEqual(s.vib_state_html_alt, '<b><i>v</i></b>=<b>0</b>')
+        self.assertEqual(s.vib_state_html_alt, '<b><i>v</i></b>=(0, 0, 0)')
         s = State.create_from_data(self.diff_isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='1')
         self.assertEqual(s.vib_state_str, '1')
         self.assertEqual(s.vib_state_html, '<i>v</i>=1')

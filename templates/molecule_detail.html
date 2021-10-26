@@ -1,9 +1,5 @@
 {% extends "base_detail.html" %}
 
-{% block detail_heading %}
-    Molecule details: {{ object.html }}
-{% endblock detail_heading %}
-
 {% block table_body %}
     <tr>
         <td class="text-end pe-3" style="width: 50%"><b>Formula:</b></td>
@@ -17,6 +13,36 @@
         <td class="text-end pe-3" style="width: 50%"><b>Isotopologue:</b></td>
         <td class="text-start ps-3" style="width: 50%">{{ object.isotopologue.html }}</td>
     </tr>
+    {% if object.isotopologue.ground_el_state_str %}
+        <tr>
+            <td class="text-end pe-3" style="width: 50%"><b>Resolves electronic states:</b></td>
+            <td class="text-start ps-3" style="width: 50%">Yes</td>
+        </tr>
+        <tr>
+            <td class="text-end pe-3" style="width: 50%"><b>Electronic ground state:</b></td>
+            <td class="text-start ps-3" style="width: 50%">{{ object.isotopologue.ground_el_state_html }}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td class="text-end pe-3" style="width: 50%"><b>Resolves electronic states:</b></td>
+            <td class="text-start ps-3" style="width: 50%">No</td>
+        </tr>
+    {% endif %}
+    {% if object.isotopologue.vib_state_dim %}
+        <tr>
+            <td class="text-end pe-3" style="width: 50%"><b>Resolves vibrational states:</b></td>
+            <td class="text-start ps-3" style="width: 50%">Yes</td>
+        </tr>
+        <tr>
+            <td class="text-end pe-3" style="width: 50%"><b>Vibrational quantum numbers:</b></td>
+            <td class="text-start ps-3" style="width: 50%">{{ object.isotopologue.vib_quantum_numbers_html }}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td class="text-end pe-3" style="width: 50%"><b>Resolves vibrational states:</b></td>
+            <td class="text-start ps-3" style="width: 50%">No</td>
+        </tr>
+    {% endif %}
     <tr>
         <td class="text-end pe-3" style="width: 50%"><b>Mass (amu):</b></td>
         <td class="text-start ps-3" style="width: 50%">{{ object.isotopologue.mass|floatformat:-5 }}</td>
@@ -31,7 +57,7 @@
             <a
                     href="{% url 'state-list' object.slug %}"
                     class="elida-link"
-{#                    target="_blank" rel="noopener noreferrer"#}
+                    {#                    target="_blank" rel="noopener noreferrer"#}
             >
                 {{ molecule.isotopologue.state_set.count }}
             </a>
@@ -43,7 +69,7 @@
             <a
                     href="{% url 'transition-list-mol_slug' object.slug %}"
                     class="elida-link"
-{#                    target="_blank" rel="noopener noreferrer"#}
+                    {#                    target="_blank" rel="noopener noreferrer"#}
             >
                 {{ molecule.isotopologue.transition_set.count }}
             </a>

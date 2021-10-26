@@ -63,3 +63,11 @@ class Transition(ModelMixin, models.Model):
     @property
     def transition_html(self):
         return f'{self.initial_state.species_html} → {self.final_state.species_html}'
+
+    @property
+    def html(self):
+        return self.transition_html
+
+    @property
+    def transition_html_alt(self):
+        return f'{self.initial_state.species_html_alt} → {self.final_state.species_html_alt}'

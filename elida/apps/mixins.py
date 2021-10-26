@@ -12,3 +12,7 @@ class ModelMixin:
 
     def __repr__(self):
         return self.str_to_repr(str(self))
+
+    @property
+    def model_name(self):
+        return self._meta.model.__name__

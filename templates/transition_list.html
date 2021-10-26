@@ -15,7 +15,7 @@
             <td><a href="{% url 'transition-detail-pk' transition.pk %}" class="elida-link"
 {#                   target="_blank" rel="noopener noreferrer"#}
             >
-                {{ transition.transition_html }}
+                {{ transition.transition_html_alt }}
             </a></td>
             <td>{{ transition.d_energy|floatformat:-3 }}</td>
             <td>{{ transition.partial_lifetime|stringformat:".2e" }}</td>

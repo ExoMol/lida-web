@@ -20,20 +20,12 @@ class TransitionListView(ListView):
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
         molecule = self.get_molecule()
-        context_data['table_heading'] = f'Transitions of {molecule.html}' + self.header_appendix
+        context_data['table_heading'] = f'Transitions' + self.header_appendix
         context_data['title'] = f'{molecule.slug} transitions'
         return context_data
 
     def get_state(self):
         return State.objects.get(pk=self.kwargs['state_pk'])
-
-    def get_state_text(self):
-        state_html = self.get_state().state_html
-        if not state_html:
-            state_text = 'ground state'
-        else:
-            state_text = f'state ({state_html})'
-        return state_text
 
     def get_molecule(self):
         if 'mol_slug' in self.kwargs:
@@ -50,7 +42,7 @@ class TransitionToListView(TransitionListView):
 
     @property
     def header_appendix(self):
-        return f' to the {self.get_state_text()}'
+        return f' to the state {self.get_state().html}'
 
 
 class TransitionFromListView(TransitionListView):
@@ -59,7 +51,7 @@ class TransitionFromListView(TransitionListView):
 
     @property
     def header_appendix(self):
-        return f' from the {self.get_state_text()}'
+        return f' from the state {self.get_state().html}'
 
 
 class TransitionMoleculeListView(TransitionListView):

@@ -2,7 +2,7 @@ from django.db import models
 from pyvalem.formula import Formula as PVFormula
 
 from elida.apps.mixins import ModelMixin
-from elida.apps.state.utils import canonicalise_and_parse_el_state_str
+from elida.apps.state.utils import canonicalise_and_parse_el_state_str, get_el_state_html
 from .exceptions import MoleculeError
 
 
@@ -190,3 +190,16 @@ class Isotopologue(ModelMixin, models.Model):
                                 f'degrees of freedom!')
         self.vib_state_dim = vib_state_dim
         self.save()
+
+    @property
+    def ground_el_state_html(self):
+        return get_el_state_html(self.ground_el_state_str)
+
+    @property
+    def vib_quantum_numbers_html(self):
+        if not self.vib_state_dim:
+            return ''
+        elif self.vib_state_dim == 1:
+            return '<i>v</i>'
+        else:
+            return f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})"

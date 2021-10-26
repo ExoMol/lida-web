@@ -23,7 +23,6 @@ class State(ModelMixin, models.Model):
 
     el_state_html = models.CharField(max_length=64)  # e.g. '<sup>1</sup>Σ<sup>-</sup>'
     vib_state_html = models.CharField(max_length=64)  # e.g. 'ν<sub>2</sub> + 3ν<sub>4</sub>', <b><i>v</i></b>=<b>0</b>
-    vib_state_html_alt = models.CharField(max_length=128)  # e.g. <b><i>v</i></b>=(0, 1, 0, 3), <b><i>v</i></b>=<b>0</b>
 
     @classmethod
     def get_from_data(cls, isotopologue, el_state_str='', vib_state_str=''):
@@ -84,7 +83,7 @@ class State(ModelMixin, models.Model):
         # ensure the passed el_state_str is valid and get canonicalised version and html.
         el_state_str, el_state_html = canonicalise_and_parse_el_state_str(el_state_str)
         # the following also ensures that the passed vib_state_str is valid
-        vib_state_dim, vib_state_html, vib_state_html_alt = validate_and_parse_vib_state_str(vib_state_str)
+        vib_state_dim, vib_state_html = validate_and_parse_vib_state_str(vib_state_str)
 
         state_str = get_state_str(isotopologue, el_state_str, vib_state_str)
 
@@ -132,7 +131,6 @@ class State(ModelMixin, models.Model):
         return cls.objects.create(
             isotopologue=isotopologue, el_state_str=el_state_str, vib_state_str=vib_state_str, lifetime=lifetime,
             energy=energy, el_state_html=el_state_html, vib_state_html=vib_state_html,
-            vib_state_html_alt=vib_state_html_alt
         )
 
     def __str__(self):
@@ -142,4 +140,20 @@ class State(ModelMixin, models.Model):
     def species_html(self):
         molecule_html = self.isotopologue.molecule.html
         state_html = '; '.join(s for s in [self.el_state_html, self.vib_state_html] if s)
+        return f'{molecule_html} {state_html}'
+
+    @property
+    def html(self):
+        return self.species_html
+
+    @property
+    def vib_state_html_alt(self):
+        if self.vib_state_str.startswith('('):
+            return f'<b><i>v</i></b>={self.vib_state_str}'
+        return self.vib_state_html
+
+    @property
+    def species_html_alt(self):
+        molecule_html = self.isotopologue.molecule.html
+        state_html = '; '.join(s for s in [self.el_state_html, self.vib_state_html_alt] if s)
         return f'{molecule_html} {state_html}'
