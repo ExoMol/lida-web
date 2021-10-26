@@ -2,6 +2,8 @@ from django.db import models
 from pyvalem.formula import Formula as PVFormula
 
 from elida.apps.mixins import ModelMixin
+from elida.apps.state.utils import canonicalise_el_state_str
+from .exceptions import MoleculeError
 
 
 class Molecule(ModelMixin, models.Model):
@@ -42,12 +44,12 @@ class Molecule(ModelMixin, models.Model):
 
         # ensure the passed formula_str is canonicalised (canonicalisation offloaded to pyvalem)
         if repr(pyvalem_formula) != formula_str:
-            raise ValueError(f'Non-canonicalised formula {formula_str} passed, instead of {repr(pyvalem_formula)}')
+            raise MoleculeError(f'Non-canonicalised formula {formula_str} passed, instead of {repr(pyvalem_formula)}')
 
         try:
             cls.get_from_formula_str(formula_str)
             # Only a single instance with the given formula_str should exist!
-            raise ValueError(f'{cls._meta.object_name}({formula_str}) already exists!')
+            raise MoleculeError(f'{cls._meta.object_name}({formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
 
@@ -92,6 +94,11 @@ class Isotopologue(ModelMixin, models.Model):
     html = models.CharField(max_length=64)
     mass = models.FloatField()
 
+    # The following fields describe the meta-data about the dataset/states assigned to the molecule and isotopologue
+    # (use dedicated methods defined to do this!):
+    ground_el_state_str = models.CharField(max_length=64, default='')  # needs to be set if el. states are assigned
+    vib_state_dim = models.SmallIntegerField(default=0)  # set automatically when vib states are assigned
+
     @classmethod
     def get_from_iso_formula_str(cls, iso_formula_str):
         """The iso_formula_str needs to be canonicalised formula compatible with pyvalem.formula.Formula argument.
@@ -125,17 +132,19 @@ class Isotopologue(ModelMixin, models.Model):
 
         # ensure the passed formula_str is canonicalised (canonicalisation offloaded to pyvalem)
         if repr(pyvalem_formula) != iso_formula_str:
-            raise ValueError(f'Non-canonicalised formula {iso_formula_str} passed, instead of {repr(pyvalem_formula)}')
+            raise MoleculeError(
+                f'Non-canonicalised formula {iso_formula_str} passed, instead of {repr(pyvalem_formula)}')
         # Only a single instance per iso_formula_str should live in the database:
         try:
             cls.get_from_iso_formula_str(iso_formula_str)
-            raise ValueError(f'{cls._meta.object_name}({iso_formula_str}) already exists!')
+            raise MoleculeError(f'{cls._meta.object_name}({iso_formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
         try:
             cls.get_from_formula_str(molecule.formula_str)
             raise \
-                ValueError(f'{cls._meta.object_name}({cls._meta.object_name}({molecule.formula_str})) already exists!')
+                MoleculeError(
+                    f'{cls._meta.object_name}({cls._meta.object_name}({molecule.formula_str})) already exists!')
         except cls.DoesNotExist:
             pass
 
@@ -145,8 +154,39 @@ class Isotopologue(ModelMixin, models.Model):
 
     @property
     def transition_set(self):
+        """Query set of all the transition objects involving states of this Isotopologue."""
         from elida.apps.transition.models import Transition
         return Transition.objects.filter(initial_state__isotopologue=self)
 
     def __str__(self):
         return str(self.molecule)
+
+    def set_ground_el_state_str(self, ground_el_state_str):
+        """Set the electronic ground state string representation belonging to this molecule. Should correspond to
+        directly to the el_state_str field of some of the states of this Isotopologue. This will be used to determine
+        which State instances are in fact ground states, even if containing explicit state strings.
+        The state string gets canonicalised the same way as when saving new State instance.
+        The ground state NEEDS to be saved manually, before any State instances containing el_state_str fields are
+        attached to this Isotopologue, otherwise errors will be raised."""
+        self.ground_el_state_str = canonicalise_el_state_str(ground_el_state_str)
+        self.save()
+
+    def set_vib_state_dim(self, vib_state_dim):
+        """Method to define the dimensionality of the vibrational states resolved for this Molecule and Isotopologue.
+        This value needs not be saved manually, rather it is saved the first time any State instance with resolved
+        vibrational state is attached to the Isotopologue, and all the subsequently attached states need to be of the
+        same dimensionality!"""
+        if vib_state_dim < 0:
+            raise MoleculeError('Vibrational state dimensionality cannot be negative!')
+        n = self.molecule.natoms
+        if n > 2:
+            lim = 3 * n - 6
+        elif n == 2:
+            lim = 1
+        else:
+            lim = 0
+        if vib_state_dim > lim:
+            raise MoleculeError(f'Vibrational state dimensionality {vib_state_dim} higher than available number of '
+                                f'degrees of freedom!')
+        self.vib_state_dim = vib_state_dim
+        self.save()

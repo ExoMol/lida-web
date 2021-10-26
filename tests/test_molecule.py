@@ -1,8 +1,9 @@
 import pyvalem.formula
 from django.test import TestCase
 from pyvalem.formula import FormulaParseError
+from pyvalem.molecular_term_symbol import MolecularTermSymbolError
 
-from elida.apps.molecule.models import Molecule, Isotopologue
+from elida.apps.molecule.models import Molecule, Isotopologue, MoleculeError
 
 
 # Create your tests here.
@@ -45,7 +46,7 @@ class TestFormula(TestCase):
 
     def test_create_duplicate(self):
         Molecule.create_from_data('CO', 'foo')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(MoleculeError):
             Molecule.create_from_data('CO', 'boo')
         Molecule.create_from_data('CO2', 'foo')
         self.assertEqual(2, len(Molecule.objects.all()))
@@ -70,11 +71,11 @@ class TestIsotopologue(TestCase):
                                           version=1)
         self.assertEqual(1, len(Isotopologue.objects.all()))
         # same formula, different isotopologue formula (not allowed):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(MoleculeError):
             Isotopologue.create_from_data(self.molecule, iso_formula_str='(13C)(17O)', inchi_key='', dataset_name='',
                                           version=1)
         # same isotopologue formula, different formula (not allowed):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(MoleculeError):
             new_m = Molecule.objects.create(formula_str='CO2', name='name', html='html', charge=0, natoms=3)
             Isotopologue.create_from_data(new_m, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='', version=1)
 
@@ -118,3 +119,25 @@ class TestIsotopologue(TestCase):
     def test_repr(self):
         i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
         self.assertEqual(repr(i), '42:Isotopologue(CO)')
+
+    def test_set_ground_state(self):
+        i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
+        self.assertEqual('', i.ground_el_state_str)
+        i.set_ground_el_state_str('1SIGMA-')
+        self.assertEqual(i.ground_el_state_str, '1Σ-')
+        with self.assertRaises(MolecularTermSymbolError):
+            i.set_ground_el_state_str('FOO')
+        self.assertEqual(i.ground_el_state_str, '1Σ-')
+        i.set_ground_el_state_str('3PI')
+        self.assertEqual(i.ground_el_state_str, '3Π')
+
+    def test_set_vib_state_dim(self):
+        i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
+        self.assertEqual(0, i.vib_state_dim)
+        i.set_vib_state_dim(1)
+        self.assertEqual(1, i.vib_state_dim)
+        with self.assertRaises(MoleculeError):
+            i.set_vib_state_dim(2)
+        with self.assertRaises(MoleculeError):
+            i.set_vib_state_dim(-1)
+        self.assertEqual(1, i.vib_state_dim)

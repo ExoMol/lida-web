@@ -1,0 +1,2 @@
+class MoleculeError(Exception):
+    pass
