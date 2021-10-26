@@ -1,4 +1,5 @@
 from pyvalem.state_parser import MolecularTermSymbol, VibrationalState
+
 from .exceptions import StateError
 
 

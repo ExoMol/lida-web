@@ -1,9 +1,10 @@
 from django.test import TestCase
-from elida.apps.state.utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str
-from elida.apps.state.exceptions import StateError
 from pyvalem.state import StateParseError
+
 from elida.apps.molecule.models import Molecule, Isotopologue
+from elida.apps.state.exceptions import StateError
 from elida.apps.state.models import State
+from elida.apps.state.utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str
 
 
 class TestUtils(TestCase):
@@ -73,8 +74,8 @@ class TestState(TestCase):
         self.assertEqual(0, len(State.objects.all()))
         el_state_str_list = ['1SIGMA-', 'A(3PI)', 'a(1SIGMA-)']
         for iso, vib_state_str_list in zip(
-            [self.isotopologue, self.diff_isotopologue],
-            [['(0, 0, 0)', '(1, 2, 3)', '(0, 1, 0)'], ['1', '0', '42']]
+                [self.isotopologue, self.diff_isotopologue],
+                [['(0, 0, 0)', '(1, 2, 3)', '(0, 1, 0)'], ['1', '0', '42']]
         ):
             for el_state_str, vib_state_str in zip(el_state_str_list, vib_state_str_list):
                 with self.subTest(isotopologue=iso, el_state_str=el_state_str, vib_state_str=vib_state_str):
@@ -208,11 +209,12 @@ class TestState(TestCase):
         State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='99')
 
         for iso, invalid_vib_str_list in zip(
-            [self.isotopologue, self.diff_isotopologue],
-            [
-                ['(0,0,0)', '(1,  2, 3)', '0, 1, 0)', '(0, 1, 0', '0, 0, 0', '(1., 2, 3)', '(00, 1, 1)', '(1, 1)', ''],
-                ['(1)', '', '1.0', '(1', '2)', '1 ', ' 2']
-            ]
+                [self.isotopologue, self.diff_isotopologue],
+                [
+                    ['(0,0,0)', '(1,  2, 3)', '0, 1, 0)', '(0, 1, 0', '0, 0, 0', '(1., 2, 3)', '(00, 1, 1)', '(1, 1)',
+                     ''],
+                    ['(1)', '', '1.0', '(1', '2)', '1 ', ' 2']
+                ]
         ):
             for vib_str in invalid_vib_str_list:
                 with self.subTest(iso=iso, vib_str=vib_str):

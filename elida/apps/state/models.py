@@ -1,11 +1,9 @@
 from django.db import models
 
-from .utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str, get_state_str
-
-from .exceptions import StateError
-
 from elida.apps.mixins import ModelMixin
 from elida.apps.molecule.models import Isotopologue
+from .exceptions import StateError
+from .utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str, get_state_str
 
 
 class State(ModelMixin, models.Model):

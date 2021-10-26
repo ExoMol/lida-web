@@ -2,6 +2,7 @@ from django.db import models
 
 from elida.apps.mixins import ModelMixin
 from elida.apps.state.models import State
+from .exceptions import TransitionError
 
 
 class Transition(ModelMixin, models.Model):
@@ -35,27 +36,27 @@ class Transition(ModelMixin, models.Model):
             branching_ratio = 0.42
         """
         if initial_state.isotopologue is not final_state.isotopologue:
-            raise ValueError(f'Transition creation failed! States {initial_state} and {final_state} '
-                             f'do not share the same isotopologue!')
+            raise TransitionError(f'Transition creation failed! States {initial_state} and {final_state} '
+                                  f'do not share the same isotopologue!')
         # Only a single instance per the states pair should ever exist:
         try:
             cls.get_from_states(initial_state, final_state)
-            raise ValueError(f'{cls._meta.object_name}({initial_state}, {final_state}) already exists!')
+            raise TransitionError(f'{cls._meta.object_name}({initial_state}, {final_state}) already exists!')
         except cls.DoesNotExist:
             pass
 
         # values validation:
         if partial_lifetime < 0:
-            raise ValueError(f'Partial lifetime needs to be positive! Passed partial_lifetime={partial_lifetime}!')
+            raise TransitionError(f'Partial lifetime needs to be positive! Passed partial_lifetime={partial_lifetime}!')
         if branching_ratio < 0 or branching_ratio > 1:
-            raise ValueError(f'Branching ratio needs to be in [0, 1]! Passed branching_ratio={branching_ratio}!')
+            raise TransitionError(f'Branching ratio needs to be in [0, 1]! Passed branching_ratio={branching_ratio}!')
 
         return cls.objects.create(initial_state=initial_state, final_state=final_state,
                                   partial_lifetime=partial_lifetime, branching_ratio=branching_ratio,
                                   d_energy=final_state.energy - initial_state.energy)
 
     def __str__(self):
-        return f'{str(self.initial_state.isotopologue)}({self.initial_state.state_str} → {self.final_state.state_str})'
+        return f'{self.initial_state} → {self.final_state}'
 
     @property
     def transition_html(self):
