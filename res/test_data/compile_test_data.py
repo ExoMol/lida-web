@@ -9,12 +9,12 @@ The dataframes coming from this script should adhere to the following standard:
   * Columns:
     * 'state': Electronic state as a pyvalem-valid molecular term symbol, or '', where not resolved.
                Examples: A(2Δ), B(2Σ+), X(2Π), a(4Σ+)
-    * 'vib_state': Vibrational state in the form of vector.
-                   Examples: '[v]', '[v1, v2, v3]', '[v1, v2, v3, v4, v5, v6]', ... These are strings with int values
+    * 'vib_state': Vibrational state in the form of a number (diatomic) or a vector.
+                   Examples: 'v', '(v1, v2, v3)', '(v1, v2, v3, v4, v5, v6)', ... These are strings with int values
     * 'energy': Float
-    * 'lifetime': Float, exactly one value in this column should be inf, labeling the ground state!
+    * 'lifetime': Float
   * No duplicate states! Each pair of 'state', 'vib_state' must be unique in the dataframe.
-  * Exactly one value in the 'lifetime' column must be float('inf')
+  * At least one value in the 'lifetime' column should be float('inf') denoting the ground state.
 * Transitions
   * Columns:
     * 'state_i': Must be present in States DataFrame
@@ -39,22 +39,25 @@ res_dir = file_dir.parent.resolve().absolute()
 
 def parse_state(state_series: pd.Series, formula: str) -> pd.DataFrame:
     res = pd.DataFrame(index=state_series.index, columns=['state', 'vib_state'])
-    if formula in {'CO', 'SiH2'}:
+    if formula == 'CO':
         res['state'] = ''
-        res['vib_state'] = state_series
+        res['vib_state'] = [state[1:-1] for state in state_series]
+    elif formula == 'SiH2':
+        res['state'] = ''
+        res['vib_state'] = [f'({state[1:-1]})' for state in state_series]
     elif formula == 'SiH':
         state_map = {'A2Delta': 'A(2DELTA)', 'B2Sigma': 'B(2SIGMA+)', 'X2Pi': 'X(2PI)', 'a4Sigma': 'a(4SIGMA+)'}
         for i in state_series.index:
             state_str = state_series[i]
             states = state_str.lstrip('[').rstrip(']').split(', ')
             state, vib_state, _, _, _ = states
-            res.loc[i] = state_map[state.strip("'")], f'[{vib_state}]'
+            res.loc[i] = state_map[state.strip("'")], vib_state
     elif formula == 'SiH4':
         res['state'] = ''
         for i in state_series.index:
             states = state_series[i].lstrip('[').rstrip(']').split(', ')
             v1, v2, _, v3, _, _, v4, _, _ = states
-            res.loc[i, 'vib_state'] = f'[{v1}, {v2}, {v3}, {v4}]'
+            res.loc[i, 'vib_state'] = f'({v1}, {v2}, {v3}, {v4})'
     else:
         assert False
     return res
@@ -106,6 +109,10 @@ def get_transitions(formula, states, normalize=True):
     mask2b = pd.Series([a in set_vib_states for a in df['vib_state_f']], index=df.index)
     mask = (mask1a & mask1b) & (mask2a & mask2b)
     df = df.loc[mask]
+    # drop the transitions with identical initial and final states:
+    mask1 = df['state_i'] == df['state_f']
+    mask2 = df['vib_state_i'] == df['vib_state_f']
+    df = df.loc[~(mask1 & mask2)]
     df.reset_index(drop=True, inplace=True)
     if normalize:
         normalize_transitions(states, df)

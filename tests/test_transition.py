@@ -64,6 +64,8 @@ class TestTransition(TestCase):
             Transition.create_from_data(self.diff_state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1)
         with self.assertRaises(TransitionError):
             Transition.create_from_data(self.state_high, self.diff_state_low, partial_lifetime=0.1, branching_ratio=0.1)
+        with self.assertRaises(TransitionError):
+            Transition.create_from_data(self.state_high, self.state_high, partial_lifetime=0.1, branching_ratio=0.1)
         _ = Transition.create_from_data(self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1)
         _ = Transition.create_from_data(self.diff_state_high, self.diff_state_low,
                                         partial_lifetime=0.1, branching_ratio=0.1)

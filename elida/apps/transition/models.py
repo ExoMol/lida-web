@@ -35,6 +35,8 @@ class Transition(ModelMixin, models.Model):
             partial_lifetime = 0.42e-42,
             branching_ratio = 0.42
         """
+        if initial_state == final_state:
+            raise TransitionError(f'Initial and final states must differ!')
         if initial_state.isotopologue is not final_state.isotopologue:
             raise TransitionError(f'Transition creation failed! States {initial_state} and {final_state} '
                                   f'do not share the same isotopologue!')
