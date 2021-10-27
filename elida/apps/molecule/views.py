@@ -16,5 +16,4 @@ class MoleculeDetailView(DetailView):
 class MoleculeListView(ListView):
     model = Molecule
     template_name = 'molecule_list.html'
-    paginate_by = 20
     extra_context = {'title': 'Molecules'}
