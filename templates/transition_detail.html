@@ -1,42 +1,28 @@
 {% extends "base_detail.html" %}
 
 {% block table_body %}
-
-    <tr>
-        <td class="text-end pe-3" style="width: 50%"><b>Initial state:</b></td>
-        <td class="text-start ps-3" style="width: 50%">
-            <a
-                    href="{% url 'state-detail-pk' object.initial_state_id %}"
-                    class="elida-link"
-{#                    target="_blank" rel="noopener noreferrer"#}
-            >
-                {{ object.initial_state.species_html }}
-            </a>
-        </td>
-    </tr>
-    <tr>
-        <td class="text-end pe-3" style="width: 50%"><b>Final state:</b></td>
-        <td class="text-start ps-3" style="width: 50%">
-            <a
-                    href="{% url 'state-detail-pk' object.final_state_id %}"
-                    class="elida-link"
-{#                    target="_blank" rel="noopener noreferrer"#}
-            >
-                {{ object.final_state.species_html }}
-            </a>
-        </td>
-    </tr>
-    <tr>
-        <td class="text-end pe-3" style="width: 50%"><b>Partial lifetime (s):</b></td>
-        <td class="text-start ps-3" style="width: 50%">{{ object.partial_lifetime|stringformat:'.2E' }}</td>
-    </tr>
-    <tr>
-        <td class="text-end pe-3" style="width: 50%"><b>Branching ratio:</b></td>
-        <td class="text-start ps-3" style="width: 50%">{{ object.branching_ratio|stringformat:'.2E' }}</td>
-    </tr>
-    <tr>
-        <td class="text-end pe-3" style="width: 50%"><b>Δ<em>E</em> (eV):</b></td>
-        <td class="text-start ps-3" style="width: 50%">{{ object.d_energy|floatformat:-3 }}</td>
-    </tr>
-
+  <tr>
+    <td class="text-end pe-3" style="width: 50%"><b>Initial state:</b></td>
+    <td class="text-start ps-3" style="width: 50%">
+      <a href="{% url 'state-detail-pk' object.initial_state_id %}" class="elida-link">{{ object.initial_state.species_html }}</a>
+    </td>
+  </tr>
+  <tr>
+    <td class="text-end pe-3" style="width: 50%"><b>Final state:</b></td>
+    <td class="text-start ps-3" style="width: 50%">
+      <a href="{% url 'state-detail-pk' object.final_state_id %}" class="elida-link">{{ object.final_state.species_html }}</a>
+    </td>
+  </tr>
+  <tr>
+    <td class="text-end pe-3" style="width: 50%"><b>Partial lifetime (s):</b></td>
+    <td class="text-start ps-3" style="width: 50%">{{ object.partial_lifetime|stringformat:'.2E' }}</td>
+  </tr>
+  <tr>
+    <td class="text-end pe-3" style="width: 50%"><b>Branching ratio:</b></td>
+    <td class="text-start ps-3" style="width: 50%">{{ object.branching_ratio|stringformat:'.2E' }}</td>
+  </tr>
+  <tr>
+    <td class="text-end pe-3" style="width: 50%"><b>Δ<em>E</em> (eV):</b></td>
+    <td class="text-start ps-3" style="width: 50%">{{ object.d_energy|floatformat:-3 }}</td>
+  </tr>
 {% endblock table_body %}

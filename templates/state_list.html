@@ -1,46 +1,40 @@
 {% extends "base_datatable.html" %}
 
 {% block table %}
+  <table class="table table-sm table-dark table-hover" id="datatable">
     <thead>
     <tr>
-        <th scope="col">State</th>
-        <th scope="col">Energy (eV)</th>
-        <th scope="col">Lifetime (s)</th>
-        <th scope="col">Transitions from</th>
-        <th scope="col">Transitions to</th>
+      <th scope="col">State</th>
+      <th scope="col">Energy (eV)</th>
+      <th scope="col">Lifetime (s)</th>
+      <th scope="col">Transitions from</th>
+      <th scope="col">Transitions to</th>
     </tr>
     </thead>
     <tbody>
     {% for state in object_list %}
-        <tr>
-            <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link"
-{#                   target="_blank" rel="noopener noreferrer"#}
-            >
-                {{ state.species_html_alt }}
-            </a></td>
-            <td>{{ state.energy|floatformat:-3 }}</td>
-            <td>
-                {% if state.lifetime is None %}
-                    ∞
-                {% else %}
-                    {{ state.lifetime|stringformat:".2e" }}
-                {% endif %}
-            </td>
-            <td>
-                {% if state.transition_from_set.count %}
-                    <a href="{% url 'transition-list-from-state' state.pk %}" class="elida-link">
-                        {{ state.transition_from_set.count }}
-                    </a>
-                {% endif %}
-            </td>
-            <td>
-                {% if state.transition_to_set.count %}
-                    <a href="{% url 'transition-list-to-state' state.pk %}" class="elida-link">
-                        {{ state.transition_to_set.count }}
-                    </a>
-                {% endif %}
-            </td>
-        </tr>
+      <tr>
+        <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link">{{ state.species_html_alt }}</a></td>
+        <td>{{ state.energy|floatformat:-3 }}</td>
+        <td>
+          {% if state.lifetime is None %}
+            ∞
+          {% else %}
+            {{ state.lifetime|stringformat:".2e" }}
+          {% endif %}
+        </td>
+        <td>
+          {% if state.transition_from_set.count %}
+            <a href="{% url 'transition-list-from-state' state.pk %}" class="elida-link">{{ state.transition_from_set.count }}</a>
+          {% endif %}
+        </td>
+        <td>
+          {% if state.transition_to_set.count %}
+            <a href="{% url 'transition-list-to-state' state.pk %}" class="elida-link">{{ state.transition_to_set.count }}</a>
+          {% endif %}
+        </td>
+      </tr>
     {% endfor %}
     </tbody>
+  </table>
 {% endblock table %}

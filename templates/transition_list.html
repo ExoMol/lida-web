@@ -1,26 +1,26 @@
 {% extends "base_datatable.html" %}
 
 {% block table %}
+  <table class="table table-sm table-dark table-hover" id="datatable">
     <thead>
     <tr>
-        <th scope="col">Transition</th>
-        <th scope="col">Δ<em>E</em> (eV)</th>
-        <th scope="col">Partial lifetime (s)</th>
-        <th scope="col">Branching ratio</th>
+      <th scope="col">Transition</th>
+      <th scope="col">Δ<em>E</em> (eV)</th>
+      <th scope="col">Partial lifetime (s)</th>
+      <th scope="col">Branching ratio</th>
     </tr>
     </thead>
     <tbody>
     {% for transition in object_list %}
-        <tr>
-            <td><a href="{% url 'transition-detail-pk' transition.pk %}" class="elida-link"
-{#                   target="_blank" rel="noopener noreferrer"#}
-            >
-                {{ transition.transition_html_alt }}
-            </a></td>
-            <td>{{ transition.d_energy|floatformat:-3 }}</td>
-            <td>{{ transition.partial_lifetime|stringformat:".2e" }}</td>
-            <td>{{ transition.branching_ratio|stringformat:".2e" }}</td>
-        </tr>
+      <tr>
+        <td>
+          <a href="{% url 'transition-detail-pk' transition.pk %}" class="elida-link">{{ transition.transition_html_alt }}</a>
+        </td>
+        <td>{{ transition.d_energy|floatformat:-3 }}</td>
+        <td>{{ transition.partial_lifetime|stringformat:".2e" }}</td>
+        <td>{{ transition.branching_ratio|stringformat:".2e" }}</td>
+      </tr>
     {% endfor %}
     </tbody>
+  </table>
 {% endblock table %}
