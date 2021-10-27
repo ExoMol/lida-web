@@ -1,6 +1,8 @@
 :root {
     --accent-color: rgb(19, 143, 52);
+    --border-color: rgb(10, 10, 10);
     --link-hover-color: rgba(19, 143, 52, 0.7);
+    --header-footer-color: rgba(0, 0, 0, 0.3);
 }
 
 .accent-color {
@@ -12,8 +14,14 @@
   border-top-color: var(--accent-color);
 }
 
-.darker {
-    background-color: rgba(0, 0, 0, 0.1);
+.elida-footer {
+    background-color: var(--header-footer-color);
+    border-top: 1px solid var(--border-color);
+}
+
+.elida-header {
+    background-color: var(--header-footer-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .elida-link {
