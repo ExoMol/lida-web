@@ -16,4 +16,4 @@ class MoleculeDetailView(DetailView):
 class MoleculeListView(ListView):
     model = Molecule
     template_name = 'molecule_list.html'
-    extra_context = {'title': 'Molecules'}
+    extra_context = {'title': 'Molecules', 'datatable_class': 'molecule-table'}

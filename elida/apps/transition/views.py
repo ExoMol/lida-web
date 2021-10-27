@@ -13,8 +13,7 @@ class TransitionDetailView(DetailView):
 
 class TransitionListView(ListView):
     template_name = 'transition_list.html'
-
-    header_appendix = ''
+    extra_context = {'datatable_class': 'transition-table'}
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)
@@ -33,6 +32,10 @@ class TransitionListView(ListView):
             return self.get_state().isotopologue.molecule
         else:
             raise ValueError('If this happens, make sure that mol_slug or state_pk are passed to views from urls')
+
+    @property
+    def header_appendix(self):
+        return f' of {self.get_molecule().html}'
 
 
 class TransitionToListView(TransitionListView):

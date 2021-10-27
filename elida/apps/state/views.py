@@ -11,6 +11,7 @@ class StateDetailView(DetailView):
 
 class StateListView(ListView):
     template_name = 'state_list.html'
+    extra_context = {'datatable_class': 'state-table'}
 
     def get_queryset(self):
         return State.objects.filter(isotopologue__molecule__slug=self.kwargs['mol_slug'])

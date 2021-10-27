@@ -1,30 +1,28 @@
 {% extends "base_datatable.html" %}
 
 {% block table %}
-  <table class="table table-sm table-dark table-hover" id="datatable">
-    <thead>
+  <thead>
+  <tr>
+    <th scope="col">Molecule</th>
+    <th scope="col"><em>N</em><sub>atoms</sub></th>
+    <th scope="col"><em>m</em> (amu)</th>
+    <th scope="col">States</th>
+    <th scope="col">Transitions</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for molecule in object_list %}
     <tr>
-      <th scope="col">Molecule</th>
-      <th scope="col"><em>N</em><sub>atoms</sub></th>
-      <th scope="col"><em>m</em> (amu)</th>
-      <th scope="col">States</th>
-      <th scope="col">Transitions</th>
+      <td><a href="{% url 'molecule-detail-slug' molecule.slug %}" class="elida-link">{{ molecule.html }}</a></td>
+      <td>{{ molecule.natoms }}</td>
+      <td>{{ molecule.isotopologue.mass|floatformat:-2 }}</td>
+      <td>
+        <a href="{% url 'state-list' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.state_set.count }}</a>
+      </td>
+      <td>
+        <a href="{% url 'transition-list-mol_slug' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.transition_set.count }}</a>
+      </td>
     </tr>
-    </thead>
-    <tbody>
-    {% for molecule in object_list %}
-      <tr>
-        <td><a href="{% url 'molecule-detail-slug' molecule.slug %}" class="elida-link">{{ molecule.html }}</a></td>
-        <td>{{ molecule.natoms }}</td>
-        <td>{{ molecule.isotopologue.mass|floatformat:-2 }}</td>
-        <td>
-          <a href="{% url 'state-list' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.state_set.count }}</a>
-        </td>
-        <td>
-          <a href="{% url 'transition-list-mol_slug' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.transition_set.count }}</a>
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  {% endfor %}
+  </tbody>
 {% endblock table %}

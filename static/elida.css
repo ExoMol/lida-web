@@ -38,11 +38,11 @@
     background-color: transparent !important;
 }
 
-.page-link:hover{
+.page-link:hover {
     background-color: var(--header-footer-color) !important;;
 }
 
-.page-link:focus{
+.page-link:focus {
     background-color: var(--header-footer-color);
     box-shadow: 0 0 0 0;
 }
@@ -58,4 +58,28 @@
 
 .form-select:focus {
     box-shadow: 0 0 0 0.25rem var(--accent-color-toned);
+}
+
+.elida-datatable > * > * > td {
+    border-bottom-width: 0;
+    padding: 0.17rem 0.25rem;
+}
+
+.elida-datatable > * > * > * {
+    white-space: nowrap;
+}
+
+.elida-details-table > * > tr > * {
+    width: 50%;
+    white-space: nowrap;
+}
+
+.elida-details-table > * > tr > *:first-child {
+    text-align: right !important;
+    padding-right: 1rem !important;  /*pe-3*/
+}
+
+.elida-details-table > * > tr > *:nth-child(2) {
+    text-align: left !important;
+    padding-left: 1rem !important;  /*ps-3*/
 }

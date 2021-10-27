@@ -7,9 +7,11 @@
         {{ table_heading }}
       </h4>
     </div>
-    <div class="table-responsive-lg">
-      {% block table %}
-      {% endblock table %}
+    <div class="table-responsive-md">
+      <table class="table table-sm table-dark table-hover elida-datatable {{ datatable_class }}">
+        {% block table %}
+        {% endblock table %}
+      </table>
     </div>
   {% endautoescape %}
 {% endblock content %}
