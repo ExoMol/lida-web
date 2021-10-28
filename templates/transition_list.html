@@ -15,7 +15,7 @@
       <td>
         <a href="{% url 'transition-detail-pk' transition.pk %}" class="elida-link">{{ transition.html }}</a>
       </td>
-      <td>{{ transition.d_energy|floatformat:-3 }}</td>
+      <td>{{ transition.delta_energy|floatformat:-3 }}</td>
       <td>{{ transition.partial_lifetime|stringformat:".2e" }}</td>
       <td>{{ transition.branching_ratio|stringformat:".2e" }}</td>
     </tr>
