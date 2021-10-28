@@ -17,9 +17,14 @@ class Transition(ModelMixin, models.Model):
 
     partial_lifetime = models.FloatField()
     branching_ratio = models.FloatField()
-    delta_energy = models.FloatField()
+    delta_energy = models.FloatField(null=True)
 
     html = models.CharField(max_length=256)
+
+    sync_functions = {
+        'delta_energy': lambda trans: trans.final_state.energy - trans.initial_state.energy,
+        'html': lambda trans: f'{trans.initial_state.html} → {trans.final_state.html}'
+    }
 
     def __str__(self):
         return f'{self.initial_state} → {self.final_state}'
@@ -58,8 +63,35 @@ class Transition(ModelMixin, models.Model):
         if branching_ratio < 0 or branching_ratio > 1:
             raise TransitionError(f'Branching ratio needs to be in [0, 1]! Passed branching_ratio={branching_ratio}!')
 
-        return cls.objects.create(
-            initial_state=initial_state, final_state=final_state, partial_lifetime=partial_lifetime,
-            branching_ratio=branching_ratio, delta_energy=final_state.energy - initial_state.energy,
-            html=f'{initial_state.html} → {final_state.html}'
+        instance = cls.objects.create(
+            initial_state=initial_state, final_state=final_state,
+            partial_lifetime=partial_lifetime, branching_ratio=branching_ratio
         )
+        instance.sync()
+        return instance
+
+    def sync(self, delta_energy=True, html=True, verbose=False):
+        """Method to sync the instance with all the other related database models. All the fields which are not
+        explicit inputs to the create_from_data method depend on other models related to this instance and can
+        be synced by this method whenever the related models get changed.
+        This is a way around this database model being very poorly normalized (in favor of performance).
+
+        Prerequisite: State instances are synced.
+        """
+        update_log = []
+
+        for attr_name, attr in zip(['delta_energy', 'html'], [delta_energy, html]):
+            if attr:
+                val_synced = self.sync_functions[attr_name](self)
+                val_orig = getattr(self, attr_name)
+                if val_synced != val_orig:
+                    setattr(self, attr_name, val_synced)
+                    update_log.append(f'updated {attr_name}: {val_orig} -> {val_synced}')
+        self.save()
+
+        if verbose and len(update_log):
+            object_repr = repr(self)
+            entry = update_log.pop(0)
+            print(f'{object_repr}: {entry}')
+            for entry in update_log:
+                print(f'{len(object_repr) * " "}  {entry}')
