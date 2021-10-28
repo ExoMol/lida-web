@@ -237,9 +237,11 @@ class TestState(TestCase):
 
     def test_state_html(self):
         s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='(1, 1, 1)')
+        self.assertEqual(s.el_state_html, '<sup>1</sup>Σ<sup>-</sup>')
         self.assertEqual(s.vib_state_str, '(1, 1, 1)')
         self.assertEqual(s.vib_state_html, '<b><i>v</i></b>=(1, 1, 1)')
-        s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='(2, 0, 0)')
+        s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1Σ+', vib_state_str='(2, 0, 0)')
+        self.assertEqual(s.el_state_html, '<sup>1</sup>Σ<sup>+</sup>')
         self.assertEqual(s.vib_state_str, '(2, 0, 0)')
         self.assertEqual(s.vib_state_html, '<b><i>v</i></b>=(2, 0, 0)')
         s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='(0, 0, 0)')
@@ -263,3 +265,8 @@ class TestState(TestCase):
         self.assertEqual(s.vib_state_str_alt, 'v=1')
         s = State.create_from_data(self.diff_isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='0')
         self.assertEqual(s.vib_state_str_alt, 'v=0')
+
+    def test_html(self):
+        s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='(1, 1, 1)')
+        self.assertEqual(s.html,
+                         f'{self.isotopologue.molecule.html} <sup>1</sup>Σ<sup>-</sup>; <b><i>v</i></b>=(1, 1, 1)')

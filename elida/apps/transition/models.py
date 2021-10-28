@@ -17,7 +17,7 @@ class Transition(ModelMixin, models.Model):
 
     partial_lifetime = models.FloatField()
     branching_ratio = models.FloatField()
-    d_energy = models.FloatField()
+    delta_energy = models.FloatField()
 
     html = models.CharField(max_length=256)
 
@@ -60,6 +60,6 @@ class Transition(ModelMixin, models.Model):
 
         return cls.objects.create(
             initial_state=initial_state, final_state=final_state, partial_lifetime=partial_lifetime,
-            branching_ratio=branching_ratio, d_energy=final_state.energy - initial_state.energy,
+            branching_ratio=branching_ratio, delta_energy=final_state.energy - initial_state.energy,
             html=f'{initial_state.html} → {final_state.html}'
         )

@@ -51,6 +51,10 @@ class TestFormula(TestCase):
         Molecule.create_from_data('CO2', 'foo')
         self.assertEqual(2, len(Molecule.objects.all()))
 
+    def test_html(self):
+        f = Molecule.create_from_data('CO2+', 'carbon monoxide')
+        self.assertEqual('CO<sub>2</sub><sup>+</sup>', f.html)
+
 
 # noinspection PyTypeChecker
 class TestIsotopologue(TestCase):
