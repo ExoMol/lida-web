@@ -33,6 +33,7 @@ class State(ModelMixin, models.Model):
     # the sync functions dict needs to be ordered, as the html attribute sync function expects el_state_html and
     # vib_state_html already synced
     sync_functions = OrderedDict([
+        ('el_state_str', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[0]),
         ('el_state_html', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[1]),
         ('vib_state_html', lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1]),
         ('html', lambda state: state.get_html()),

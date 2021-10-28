@@ -78,3 +78,14 @@ class TestTransition(TestCase):
     def test_html(self):
         t = Transition.create_from_data(self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1)
         self.assertEqual(f'{self.state_high.html} → {self.state_low.html}', t.html)
+
+    def test_sync(self):
+        t = Transition.create_from_data(self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1)
+        s = State.create_from_data(self.isotopologue, lifetime=0.1, energy=42, vib_state_str='(9, 9, 9)')
+        t.initial_state = s
+        t.sync()
+        self.assertEqual(t.delta_energy, -42.1)
+        self.assertEqual(t.html, 'CO<sub>2</sub> <b><i>v</i></b>=(9, 9, 9) → CO<sub>2</sub> <b><i>v</i></b>=(0, 0, 0)')
+        t = Transition.get_from_states(s, self.state_low)
+        self.assertEqual(t.delta_energy, -42.1)
+        self.assertEqual(t.html, 'CO<sub>2</sub> <b><i>v</i></b>=(9, 9, 9) → CO<sub>2</sub> <b><i>v</i></b>=(0, 0, 0)')

@@ -62,8 +62,11 @@ class ModelMixin:
             from elida.apps.molecule.models import Molecule
             from elida.apps.state.models import State
             if isinstance(self, Molecule) and 'html' in attributes_to_sync:
-                for state in self.isotopologue.state_set:
-                    state.sync(verbose=verbose, propagate=propagate, sync_only=['html'])
+                for state in self.isotopologue.state_set.all():
+                    state.sync(verbose=verbose, propagate=False,
+                               sync_only=['el_state_html', 'vib_state_html', 'html'])
+                for transition in self.isotopologue.transition_set.all():
+                    transition.sync(verbose=verbose, propagate=False, sync_only=['html'])
             if isinstance(self, State) and 'html' in attributes_to_sync:
-                for transition in self.transition_set:
+                for transition in self.transition_set.all():
                     transition.sync(verbose=verbose, propagate=propagate, sync_only=['html'])

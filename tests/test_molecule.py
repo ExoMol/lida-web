@@ -4,11 +4,13 @@ from pyvalem.formula import FormulaParseError
 from pyvalem.molecular_term_symbol import MolecularTermSymbolError
 
 from elida.apps.molecule.models import Molecule, Isotopologue, MoleculeError
+from elida.apps.state.models import State
+from elida.apps.transition.models import Transition
 
 
 # Create your tests here.
 # noinspection PyTypeChecker
-class TestFormula(TestCase):
+class TestMolecule(TestCase):
     def test_create_from_str(self):
         self.assertEqual(len(Molecule.objects.all()), 0)
         Molecule.create_from_data('CO2+', name='carbon dioxide ion')
@@ -54,6 +56,46 @@ class TestFormula(TestCase):
     def test_html(self):
         f = Molecule.create_from_data('CO2+', 'carbon monoxide')
         self.assertEqual('CO<sub>2</sub><sup>+</sup>', f.html)
+
+    def test_sync(self):
+        m = Molecule.create_from_data('CO2+', name='carbon dioxide ion')
+        self.assertEqual(m.html, 'CO<sub>2</sub><sup>+</sup>')
+        self.assertEqual(m.charge, 1)
+        m.formula_str = 'CO'
+        self.assertEqual(m.html, 'CO<sub>2</sub><sup>+</sup>')
+        self.assertEqual(m.charge, 1)
+        m.sync(propagate=False)
+        self.assertEqual(m.html, 'CO')
+        self.assertEqual(m.charge, 0)
+        self.assertEqual(m.slug, 'CO')
+        self.assertEqual(m.number_atoms, 2)
+
+        m.formula_str = 'H2O-'
+        m.sync(propagate=False, sync_only=['slug'])
+        self.assertEqual(m.html, 'CO')
+        self.assertEqual(m.charge, 0)
+        self.assertEqual(m.slug, 'H2O_m')
+        self.assertEqual(m.number_atoms, 2)
+
+    def test_sync_propagate(self):
+        m = Molecule.create_from_data('CO2+', name='carbon dioxide ion')
+        i = Isotopologue.create_from_data(m, iso_formula_str='(12C)(16O)2+', inchi_key='', dataset_name='', version=1)
+        s1 = State.create_from_data(i, 0, 0, vib_state_str='1')
+        s0 = State.create_from_data(i, 0, 0, vib_state_str='0')
+        Transition.create_from_data(s1, s0, 0, 0)
+        s1, s0 = State.get_from_data(i, vib_state_str='1'), State.get_from_data(i, vib_state_str='0')
+        t = Transition.get_from_states(s1, s0)
+        self.assertEqual(s0.html, 'CO<sub>2</sub><sup>+</sup> <i>v</i>=0')
+        self.assertEqual(s1.html, 'CO<sub>2</sub><sup>+</sup> <i>v</i>=1')
+        self.assertEqual(t.html, 'CO<sub>2</sub><sup>+</sup> <i>v</i>=1 → CO<sub>2</sub><sup>+</sup> <i>v</i>=0')
+        m.formula_str = 'CO'
+        m.sync(propagate=True)
+        self.assertEqual(m.html, 'CO')
+        s1, s0 = State.get_from_data(i, vib_state_str='1'), State.get_from_data(i, vib_state_str='0')
+        t = Transition.get_from_states(s1, s0)
+        self.assertEqual(s0.html, 'CO <i>v</i>=0')
+        self.assertEqual(s1.html, 'CO <i>v</i>=1')
+        self.assertEqual(t.html, 'CO <i>v</i>=1 → CO <i>v</i>=0')
 
 
 # noinspection PyTypeChecker
@@ -146,3 +188,13 @@ class TestIsotopologue(TestCase):
         with self.assertRaises(MoleculeError):
             i.set_vib_state_dim(-1)
         self.assertEqual(1, i.vib_state_dim)
+
+    def test_sync(self):
+        i = Isotopologue.create_from_data(self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
+                                          version=1)
+        i.iso_formula_str = '(1H)2(16O)+'
+        i.sync()
+        self.assertEqual('', i.inchi_key)
+        self.assertEqual('', i.dataset_name)
+        self.assertEqual('<sup>1</sup>H<sub>2</sub><sup>16</sup>O<sup>+</sup>', i.html)
+        self.assertEqual(i.iso_slug, '1H2-16O_p')

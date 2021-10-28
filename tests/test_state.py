@@ -5,6 +5,7 @@ from elida.apps.molecule.models import Molecule, Isotopologue
 from elida.apps.state.exceptions import StateError
 from elida.apps.state.models import State
 from elida.apps.state.utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str
+from elida.apps.transition.models import Transition
 
 
 class TestUtils(TestCase):
@@ -270,3 +271,42 @@ class TestState(TestCase):
         s = State.create_from_data(self.isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='(1, 1, 1)')
         self.assertEqual(s.html,
                          f'{self.isotopologue.molecule.html} <sup>1</sup>Σ<sup>-</sup>; <b><i>v</i></b>=(1, 1, 1)')
+
+    def test_sync(self):
+        State.create_from_data(self.diff_isotopologue, 0, 0, el_state_str='1SIGMA-', vib_state_str='1')
+        s = State.get_from_data(self.diff_isotopologue, el_state_str='1SIGMA-', vib_state_str='1')
+        self.assertEqual(
+            s.html, 'CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1'
+        )
+        s.el_state_str = '3PI'
+        s.vib_state_str = '0'
+        s.sync(propagate=False)
+        self.assertEqual(s.html, 'CO <sup>3</sup>Π; <i>v</i>=0')
+        self.assertEqual(s.el_state_str, '3Π')
+        self.assertEqual(s.vib_state_str, '0')
+        self.assertEqual(
+            s.html, 'CO <sup>3</sup>Π; <i>v</i>=0'
+        )
+        s = State.get_from_data(self.diff_isotopologue, el_state_str='3PI', vib_state_str='0')
+        self.assertEqual(s.html, 'CO <sup>3</sup>Π; <i>v</i>=0')
+        self.assertEqual(s.el_state_str, '3Π')
+        self.assertEqual(s.vib_state_str, '0')
+        self.assertEqual(
+            s.html, 'CO <sup>3</sup>Π; <i>v</i>=0'
+        )
+
+    def test_sync_propagate(self):
+        s1 = State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='1', el_state_str='1SIGMA-')
+        s0 = State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='0', el_state_str='1SIGMA-')
+        t = Transition.create_from_data(s1, s0, 0, 0)
+        self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=0', t.html)
+        s0.el_state_str = '3PI'
+        s0.vib_state_str = '4'
+        t = Transition.get_from_states(s1, s0)
+        self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=0', t.html)
+        s0.sync(propagate=False)
+        t = Transition.get_from_states(s1, s0)
+        self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=0', t.html)
+        s0.sync(propagate=True)
+        t = Transition.get_from_states(s1, s0)
+        self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>3</sup>Π; <i>v</i>=4', t.html)
