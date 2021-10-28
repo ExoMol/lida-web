@@ -14,13 +14,13 @@
   {% for molecule in object_list %}
     <tr>
       <td><a href="{% url 'molecule-detail-slug' molecule.slug %}" class="elida-link">{{ molecule.html }}</a></td>
-      <td>{{ molecule.natoms }}</td>
+      <td>{{ molecule.number_atoms }}</td>
       <td>{{ molecule.isotopologue.mass|floatformat:-2 }}</td>
       <td>
-        <a href="{% url 'state-list' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.state_set.count }}</a>
+        <a href="{% url 'state-list' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.number_states }}</a>
       </td>
       <td>
-        <a href="{% url 'transition-list-mol_slug' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.transition_set.count }}</a>
+        <a href="{% url 'transition-list-mol_slug' molecule.slug %}" class="elida-link">{{ molecule.isotopologue.number_transitions }}</a>
       </td>
     </tr>
   {% endfor %}

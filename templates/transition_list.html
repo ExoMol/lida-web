@@ -13,7 +13,7 @@
   {% for transition in object_list %}
     <tr>
       <td>
-        <a href="{% url 'transition-detail-pk' transition.pk %}" class="elida-link">{{ transition.transition_html_alt }}</a>
+        <a href="{% url 'transition-detail-pk' transition.pk %}" class="elida-link">{{ transition.html }}</a>
       </td>
       <td>{{ transition.d_energy|floatformat:-3 }}</td>
       <td>{{ transition.partial_lifetime|stringformat:".2e" }}</td>

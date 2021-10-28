@@ -5,11 +5,11 @@ from .exceptions import StateError
 
 def validate_and_parse_vib_state_str(vib_state_str):
     """Helper function validating and parsing the vib_state_str.
-    Returns dimensionality of the vibrational excitation, and two html representations. Raises StateError whenever the
+    Returns list of quanta of the vibrational excitation, and the html representation. Raises StateError whenever the
     passed vib_state_str is not in exactly the correct format.
     """
     if vib_state_str == '':
-        return 0, ''
+        return [], ''
 
     invalid_state_str_msg = \
         f'Vibrational string "{vib_state_str}" is not in the form of "(v_1, v_2, ..., v_n)" or "v"!'
@@ -38,13 +38,10 @@ def validate_and_parse_vib_state_str(vib_state_str):
     if len(quanta_int) == 1:
         q = quanta_int[0]
         vib_state_html = f'<i>v</i>={q}'
-    elif not any(quanta_int):
-        vib_state_html = f'<b><i>v</i></b>=<b>0</b>'
     else:
-        pyvalem_str = '+'.join(f'{q}v{v}' for v, q in enumerate(quanta_int, start=1) if q > 0)
-        vib_state_html = VibrationalState(pyvalem_str).html
+        vib_state_html = f'<b><i>v</i></b>={vib_state_str}'
 
-    return vib_state_dim, vib_state_html
+    return quanta_int, vib_state_html
 
 
 def canonicalise_and_parse_el_state_str(el_state_str):

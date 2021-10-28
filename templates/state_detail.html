@@ -16,7 +16,7 @@
   {% if object.vib_state_str %}
     <tr>
       <td><b>Vibrational state:</b></td>
-      <td>{{ object.vib_state_html_alt }}</td>
+      <td>{{ object.vib_state_html }}</td>
     </tr>
   {% endif %}
   <tr>
@@ -35,8 +35,8 @@
   <tr>
     <td><b>Transitions from the state:</b></td>
     <td>
-      {% if object.transition_from_set.count %}
-        <a href="{% url 'transition-list-from-state' object.pk %}" class="elida-link">{{ object.transition_from_set.count }}</a>
+      {% if object.number_transitions_from %}
+        <a href="{% url 'transition-list-from-state' object.pk %}" class="elida-link">{{ object.number_transitions_from }}</a>
       {% else %}
         0
       {% endif %}
@@ -45,8 +45,8 @@
   <tr>
     <td><b>Transitions to the state:</b></td>
     <td>
-      {% if object.transition_to_set.count %}
-        <a href="{% url 'transition-list-to-state' object.pk %}" class="elida-link">{{ object.transition_to_set.count }}</a>
+      {% if object.number_transitions_to %}
+        <a href="{% url 'transition-list-to-state' object.pk %}" class="elida-link">{{ object.number_transitions_to }}</a>
       {% else %}
         0
       {% endif %}

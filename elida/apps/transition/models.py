@@ -19,19 +19,24 @@ class Transition(ModelMixin, models.Model):
     branching_ratio = models.FloatField()
     d_energy = models.FloatField()
 
+    html = models.CharField(max_length=256)
+
+    def __str__(self):
+        return f'{self.initial_state} → {self.final_state}'
+
     @classmethod
     def get_from_states(cls, initial_state, final_state):
         """Example:
-            initial_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=2'),
-            final_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=1')
+            initial_state = State.get_from_data(Isotopologue.get_from_data('CO'), vib_state_str='2'),
+            final_state = State.get_from_data(Isotopologue.get_from_data('CO'), vib_state_str='1')
         """
         return cls.objects.get(initial_state=initial_state, final_state=final_state)
 
     @classmethod
     def create_from_data(cls, initial_state, final_state, partial_lifetime, branching_ratio):
         """Example:
-            initial_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=2'),
-            final_state = State.get_from_data(Isotopologue.get_from_formula_str('CO'), 'v=1'),
+            initial_state = State.get_from_data(Isotopologue.get_from_data('CO'), vib_state_str='2'),
+            final_state = State.get_from_data(Isotopologue.get_from_data('CO'), vib_state_str='1'),
             partial_lifetime = 0.42e-42,
             branching_ratio = 0.42
         """
@@ -53,21 +58,8 @@ class Transition(ModelMixin, models.Model):
         if branching_ratio < 0 or branching_ratio > 1:
             raise TransitionError(f'Branching ratio needs to be in [0, 1]! Passed branching_ratio={branching_ratio}!')
 
-        return cls.objects.create(initial_state=initial_state, final_state=final_state,
-                                  partial_lifetime=partial_lifetime, branching_ratio=branching_ratio,
-                                  d_energy=final_state.energy - initial_state.energy)
-
-    def __str__(self):
-        return f'{self.initial_state} → {self.final_state}'
-
-    @property
-    def transition_html(self):
-        return f'{self.initial_state.species_html} → {self.final_state.species_html}'
-
-    @property
-    def html(self):
-        return self.transition_html
-
-    @property
-    def transition_html_alt(self):
-        return f'{self.initial_state.species_html_alt} → {self.final_state.species_html_alt}'
+        return cls.objects.create(
+            initial_state=initial_state, final_state=final_state, partial_lifetime=partial_lifetime,
+            branching_ratio=branching_ratio, d_energy=final_state.energy - initial_state.energy,
+            html=f'{initial_state.html} → {final_state.html}'
+        )

@@ -21,7 +21,10 @@ class Molecule(ModelMixin, models.Model):
     # The following fields are auto-filled using pyvalem package, when using the class methods below for construction
     html = models.CharField(max_length=64)
     charge = models.SmallIntegerField()
-    natoms = models.PositiveSmallIntegerField()
+    number_atoms = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return self.formula_str
 
     @classmethod
     def get_from_formula_str(cls, formula_str):
@@ -55,14 +58,7 @@ class Molecule(ModelMixin, models.Model):
 
         return cls.objects.create(formula_str=formula_str, slug=pyvalem_formula.slug, name=name,
                                   html=pyvalem_formula.html, charge=pyvalem_formula.charge,
-                                  natoms=pyvalem_formula.natoms)
-
-    def __str__(self):
-        return self.formula_str
-
-    @property
-    def mass(self):
-        return self.isotopologue.mass
+                                  number_atoms=pyvalem_formula.natoms)
 
 
 class Isotopologue(ModelMixin, models.Model):
@@ -97,7 +93,12 @@ class Isotopologue(ModelMixin, models.Model):
     # The following fields describe the meta-data about the dataset/states assigned to the molecule and isotopologue
     # (use dedicated methods defined to do this!):
     ground_el_state_str = models.CharField(max_length=64, default='')  # needs to be set if el. states are assigned
-    vib_state_dim = models.SmallIntegerField(default=0)  # set automatically when vib states are assigned
+    vib_state_dim = models.PositiveSmallIntegerField(default=0)  # set automatically when vib states are assigned
+    number_states = models.PositiveIntegerField(default=0)  # auto-increase/decrease on states creation/deletion
+    number_transitions = models.PositiveIntegerField(default=0)  # auto-increase/decrease on states creation/deletion
+
+    def __str__(self):
+        return str(self.molecule)
 
     @classmethod
     def get_from_iso_formula_str(cls, iso_formula_str):
@@ -113,6 +114,9 @@ class Isotopologue(ModelMixin, models.Model):
         It is expected that only a single Molecule instance with a given formula_str exists, otherwise this
         might lead to inconsistent behaviour.
         """
+        if cls.objects.filter(molecule__formula_str=formula_str).count() > 1:
+            raise MoleculeError('Looks like we have switched to one-to-many relationship between Molecule and '
+                                'Isotopologue. In that case, this method needs to be revisited!')
         return cls.objects.get(molecule__formula_str=formula_str)
 
     @classmethod
@@ -158,9 +162,6 @@ class Isotopologue(ModelMixin, models.Model):
         from elida.apps.transition.models import Transition
         return Transition.objects.filter(initial_state__isotopologue=self)
 
-    def __str__(self):
-        return str(self.molecule)
-
     def set_ground_el_state_str(self, ground_el_state_str):
         """Set the electronic ground state string representation belonging to this molecule. Should correspond to
         directly to the el_state_str field of some of the states of this Isotopologue. This will be used to determine
@@ -178,7 +179,7 @@ class Isotopologue(ModelMixin, models.Model):
         same dimensionality!"""
         if vib_state_dim < 0:
             raise MoleculeError('Vibrational state dimensionality cannot be negative!')
-        n = self.molecule.natoms
+        n = self.molecule.number_atoms
         if n > 2:
             lim = 3 * n - 6
         elif n == 2:
@@ -203,3 +204,11 @@ class Isotopologue(ModelMixin, models.Model):
             return '<i>v</i>'
         else:
             return f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})"
+
+    # @property
+    # def number_states(self):
+    #     return self.state_set.count()
+    #
+    # @property
+    # def number_transitions(self):
+    #     return self.transition_set.count()

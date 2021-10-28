@@ -54,13 +54,13 @@
   <tr>
     <td><b>States:</b></td>
     <td>
-      <a href="{% url 'state-list' object.slug %}" class="elida-link">{{ molecule.isotopologue.state_set.count }}</a>
+      <a href="{% url 'state-list' object.slug %}" class="elida-link">{{ molecule.isotopologue.number_states }}</a>
     </td>
   </tr>
   <tr>
     <td><b>Transitions:</b></td>
     <td>
-      <a href="{% url 'transition-list-mol_slug' object.slug %}" class="elida-link">{{ molecule.isotopologue.transition_set.count }}</a>
+      <a href="{% url 'transition-list-mol_slug' object.slug %}" class="elida-link">{{ molecule.isotopologue.number_transitions }}</a>
     </td>
   </tr>
   <tr>

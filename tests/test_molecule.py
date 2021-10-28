@@ -16,7 +16,7 @@ class TestFormula(TestCase):
         f = Molecule.objects.get(formula_str='CO2+')
         self.assertEqual(f.charge, 1)
         self.assertEqual(f.html, 'CO<sub>2</sub><sup>+</sup>')
-        self.assertEqual(f.natoms, 3)
+        self.assertEqual(f.number_atoms, 3)
         self.assertEqual(f.name, 'carbon dioxide ion')
 
     def test_invalid_formula_str(self):
@@ -40,7 +40,7 @@ class TestFormula(TestCase):
         self.assertEqual('CO2+', str(f))
 
     def test_repr(self):
-        f = Molecule.objects.create(formula_str='CO', name='', html='', charge=0, natoms=2, id=42)
+        f = Molecule.objects.create(formula_str='CO', name='', html='', charge=0, number_atoms=2, id=42)
         self.assertEqual(f.id, 42)
         self.assertEqual('42:Molecule(CO)', repr(f))
 
@@ -55,7 +55,7 @@ class TestFormula(TestCase):
 # noinspection PyTypeChecker
 class TestIsotopologue(TestCase):
     def setUp(self):
-        self.molecule = Molecule.objects.create(formula_str='CO', name='name', html='html', charge=0, natoms=2)
+        self.molecule = Molecule.objects.create(formula_str='CO', name='name', html='html', charge=0, number_atoms=2)
         self.test_attributes = {'id': 42, 'iso_formula_str': '(12C)(16O)', 'iso_slug': '', 'inchi_key': '',
                                 'dataset_name': '', 'version': 1, 'html': '', 'mass': 1}
 
@@ -76,7 +76,7 @@ class TestIsotopologue(TestCase):
                                           version=1)
         # same isotopologue formula, different formula (not allowed):
         with self.assertRaises(MoleculeError):
-            new_m = Molecule.objects.create(formula_str='CO2', name='name', html='html', charge=0, natoms=3)
+            new_m = Molecule.objects.create(formula_str='CO2', name='name', html='html', charge=0, number_atoms=3)
             Isotopologue.create_from_data(new_m, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='', version=1)
 
         # both different, no problem!

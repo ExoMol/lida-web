@@ -1,5 +1,7 @@
 from django.db import models
 
+from pyvalem.vibrational_state import VibrationalState
+
 from elida.apps.mixins import ModelMixin
 from elida.apps.molecule.models import Isotopologue
 from .exceptions import StateError
@@ -18,11 +20,24 @@ class State(ModelMixin, models.Model):
     lifetime = models.FloatField(null=True)  # null fields denoting float('inf') which are not supported in MySQL
     energy = models.FloatField()
 
-    el_state_str = models.CharField(max_length=64)  # e.g. '1Σ-'
-    vib_state_str = models.CharField(max_length=64)  # e.g. '(0, 1, 0, 3)', '(0, 0, 0, 0)'
+    # el_state_str is compatible with pyvalem MolecularTermSymbol (what repr of the pyvalem class returns), e.g. '1Σ-'
+    el_state_str = models.CharField(max_length=64)
+    # vib_state_str is always a string and denoting either a vector or a single v,
+    # e.g. '(0, 1, 0, 3)', '(0, 0, 0, 0)', and '5'
+    vib_state_str = models.CharField(max_length=64)
 
-    el_state_html = models.CharField(max_length=64)  # e.g. '<sup>1</sup>Σ<sup>-</sup>'
-    vib_state_html = models.CharField(max_length=64)  # e.g. 'ν<sub>2</sub> + 3ν<sub>4</sub>', <b><i>v</i></b>=<b>0</b>
+    # following fields are auto-added when using the dedicated create_from methods.
+    el_state_html = models.CharField(max_length=64)
+    vib_state_html = models.CharField(max_length=64)
+    html = models.CharField(max_length=128)
+
+    # The following fields describe the meta-data about the transitions assigned to the state, handled automatically
+    # when using the dedicated create_from methods...
+    number_transitions_from = models.PositiveIntegerField(default=0)  # auto-inc/dec on transition creation/deletion
+    number_transitions_to = models.PositiveIntegerField(default=0)  # auto-inc/dec on transition creation/deletion
+
+    def __str__(self):
+        return get_state_str(self.isotopologue, self.el_state_str, self.vib_state_str)
 
     @classmethod
     def get_from_data(cls, isotopologue, el_state_str='', vib_state_str=''):
@@ -83,8 +98,10 @@ class State(ModelMixin, models.Model):
         # ensure the passed el_state_str is valid and get canonicalised version and html.
         el_state_str, el_state_html = canonicalise_and_parse_el_state_str(el_state_str)
         # the following also ensures that the passed vib_state_str is valid
-        vib_state_dim, vib_state_html = validate_and_parse_vib_state_str(vib_state_str)
+        vib_state_quanta, vib_state_html = validate_and_parse_vib_state_str(vib_state_str)
+        vib_state_dim = len(vib_state_quanta)
 
+        # state_str is only for error reporting:
         state_str = get_state_str(isotopologue, el_state_str, vib_state_str)
 
         # Only a single instance per isotopologue and both state_str should ever exist:
@@ -94,11 +111,13 @@ class State(ModelMixin, models.Model):
         except cls.DoesNotExist:
             pass
 
+        # deal with the infinite lifetimes, swap for None
         if lifetime in {float('inf'), None}:
             lifetime = None
         elif lifetime < 0:
             raise StateError(f'Passed lifetime={lifetime} for State "{state_str}" is not positive!')
 
+        # check if the vibrational state dimension matches the other states of the Isotopologue
         if vib_state_dim:
             if not isotopologue.state_set.count():
                 # first State being saved for the given isotopologue
@@ -113,7 +132,7 @@ class State(ModelMixin, models.Model):
                 f'Isotopologue {isotopologue} expects vibrational dimension {isotopologue.vib_state_dim}, but State '
                 f'{state_str} does not resolve vibrational states!'
             )
-
+        # the same check with the electronic state, if resolved, the Isotopologue needs to know what a ground state is
         if el_state_str and not isotopologue.ground_el_state_str:
             raise StateError(
                 f'Before saving State "{state_str}", ground_el_state_str needs to be saved for Isotopologue '
@@ -128,32 +147,38 @@ class State(ModelMixin, models.Model):
                 f'by having vib_state_dim > 0 or non-empty ground_el_state_str.'
             )
 
+        # build the html field, containing not only state html but also the html of the molecule:
+        molecule_html = isotopologue.molecule.html
+        state_html = '; '.join(s for s in [el_state_html, vib_state_html] if s)
+        html = f'{molecule_html} {state_html}'
+
         return cls.objects.create(
-            isotopologue=isotopologue, el_state_str=el_state_str, vib_state_str=vib_state_str, lifetime=lifetime,
-            energy=energy, el_state_html=el_state_html, vib_state_html=vib_state_html,
+            isotopologue=isotopologue, lifetime=lifetime, energy=energy,
+            el_state_str=el_state_str, vib_state_str=vib_state_str,
+            el_state_html=el_state_html, vib_state_html=vib_state_html, html=html
         )
 
-    def __str__(self):
-        return get_state_str(self.isotopologue, self.el_state_str, self.vib_state_str)
-
     @property
-    def species_html(self):
-        molecule_html = self.isotopologue.molecule.html
-        state_html = '; '.join(s for s in [self.el_state_html, self.vib_state_html] if s)
-        return f'{molecule_html} {state_html}'
+    def vib_state_str_alt(self):
+        # vib_state_str_alt is a representation compatible with pyvalem VibrationalState (also canonicalised by repr)
+        # e.g. 'v2+3v4' for vib_state_str == '(0, 1, 0, 3)', or 'v=5' for vib_state_str == '5'
+        vib_state_quanta, _ = validate_and_parse_vib_state_str(self.vib_state_str)
+        if not len(vib_state_quanta):
+            raise StateError(f'Unrecognised vib_state_str saved under {self}!')
+        elif len(vib_state_quanta) == 1:
+            pyvalem_str = f'v={vib_state_quanta[0]}'
+        elif not any(vib_state_quanta):
+            return ''
+        else:
+            pyvalem_str = '+'.join(f'{q}v{v}' for v, q in enumerate(vib_state_quanta, start=1) if q > 0)
 
-    @property
-    def html(self):
-        return self.species_html
+        vib_state_str_alt = repr(VibrationalState(pyvalem_str))
+        return vib_state_str_alt
 
-    @property
-    def vib_state_html_alt(self):
-        if self.vib_state_str.startswith('('):
-            return f'<b><i>v</i></b>={self.vib_state_str}'
-        return self.vib_state_html
-
-    @property
-    def species_html_alt(self):
-        molecule_html = self.isotopologue.molecule.html
-        state_html = '; '.join(s for s in [self.el_state_html, self.vib_state_html_alt] if s)
-        return f'{molecule_html} {state_html}'
+    # @property
+    # def number_transitions_from(self):
+    #     return self.transition_from_set.count()
+    #
+    # @property
+    # def number_transitions_to(self):
+    #     return self.transition_to_set.count()

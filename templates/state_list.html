@@ -13,7 +13,7 @@
   <tbody>
   {% for state in object_list %}
     <tr>
-      <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link">{{ state.species_html_alt }}</a></td>
+      <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link">{{ state.html }}</a></td>
       <td>{{ state.energy|floatformat:-3 }}</td>
       <td>
         {% if state.lifetime is None %}
@@ -23,13 +23,13 @@
         {% endif %}
       </td>
       <td>
-        {% if state.transition_from_set.count %}
-          <a href="{% url 'transition-list-from-state' state.pk %}" class="elida-link">{{ state.transition_from_set.count }}</a>
+        {% if state.number_transitions_from %}
+          <a href="{% url 'transition-list-from-state' state.pk %}" class="elida-link">{{ state.number_transitions_from }}</a>
         {% endif %}
       </td>
       <td>
-        {% if state.transition_to_set.count %}
-          <a href="{% url 'transition-list-to-state' state.pk %}" class="elida-link">{{ state.transition_to_set.count }}</a>
+        {% if state.number_transitions_to %}
+          <a href="{% url 'transition-list-to-state' state.pk %}" class="elida-link">{{ state.number_transitions_to }}</a>
         {% endif %}
       </td>
     </tr>
