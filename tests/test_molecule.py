@@ -61,7 +61,8 @@ class TestIsotopologue(TestCase):
     def setUp(self):
         self.molecule = Molecule.objects.create(formula_str='CO', name='name', html='html', charge=0, number_atoms=2)
         self.test_attributes = {'id': 42, 'iso_formula_str': '(12C)(16O)', 'iso_slug': '', 'inchi_key': '',
-                                'dataset_name': '', 'version': 1, 'html': '', 'mass': 1}
+                                'dataset_name': '', 'version': 1, 'html': '', 'mass': 1,
+                                'number_states': 0, 'number_transitions': 0}
 
     def test_create_from_data(self):
         self.assertEqual(0, len(Isotopologue.objects.all()))

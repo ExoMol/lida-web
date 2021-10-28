@@ -15,10 +15,16 @@ class Molecule(ModelMixin, models.Model):
     # The following fields should be compatible with ExoMol database itself (and the formula_str needs to be compatible
     # with pyvalem.formula.Formula)
     formula_str = models.CharField(max_length=16)
-    slug = models.CharField(max_length=16)
     name = models.CharField(max_length=64)
 
-    # The following fields are auto-filled using pyvalem package, when using the class methods below for construction
+    sync_functions = {
+        'slug': lambda molecule: PVFormula(molecule.formula_str).slug,
+        'html': lambda molecule: PVFormula(molecule.formula_str).html,
+        'charge': lambda molecule: PVFormula(molecule.formula_str).charge,
+        'number_atoms': lambda molecule: PVFormula(molecule.formula_str).natoms,
+    }
+
+    slug = models.CharField(max_length=16)
     html = models.CharField(max_length=64)
     charge = models.SmallIntegerField()
     number_atoms = models.PositiveSmallIntegerField()
@@ -52,13 +58,13 @@ class Molecule(ModelMixin, models.Model):
         try:
             cls.get_from_formula_str(formula_str)
             # Only a single instance with the given formula_str should exist!
-            raise MoleculeError(f'{cls._meta.object_name}({formula_str}) already exists!')
+            raise MoleculeError(f'Molecule({formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
 
-        return cls.objects.create(formula_str=formula_str, slug=pyvalem_formula.slug, name=name,
-                                  html=pyvalem_formula.html, charge=pyvalem_formula.charge,
-                                  number_atoms=pyvalem_formula.natoms)
+        instance = cls(formula_str=formula_str, name=name)
+        instance.sync(propagate=False)
+        return instance
 
 
 class Isotopologue(ModelMixin, models.Model):
@@ -81,21 +87,28 @@ class Isotopologue(ModelMixin, models.Model):
     # recommended dataset_name has not changed.
     # iso_formula_str and iso_slug are compatible with PyValem package.
     iso_formula_str = models.CharField(max_length=32)
-    iso_slug = models.CharField(max_length=32)
     inchi_key = models.CharField(max_length=32)
     dataset_name = models.CharField(max_length=16)
     version = models.PositiveIntegerField()
-
-    # The following fields will be autofilled by PyValem package when the class methods below are used for creation.
-    html = models.CharField(max_length=64)
-    mass = models.FloatField()
 
     # The following fields describe the meta-data about the dataset/states assigned to the molecule and isotopologue
     # (use dedicated methods defined to do this!):
     ground_el_state_str = models.CharField(max_length=64, default='')  # needs to be set if el. states are assigned
     vib_state_dim = models.PositiveSmallIntegerField(default=0)  # set automatically when vib states are assigned
-    number_states = models.PositiveIntegerField(default=0)  # auto-increase/decrease on states creation/deletion
-    number_transitions = models.PositiveIntegerField(default=0)  # auto-increase/decrease on states creation/deletion
+
+    sync_functions = {
+        'iso_slug': lambda iso: PVFormula(iso.iso_formula_str).slug,
+        'html': lambda iso: PVFormula(iso.iso_formula_str).html,
+        'mass': lambda iso: PVFormula(iso.iso_formula_str).mass,
+        'number_states': lambda iso: iso.state_set.count(),
+        'number_transitions': lambda iso: iso.transition_set.count(),
+    }
+
+    iso_slug = models.CharField(max_length=32)
+    html = models.CharField(max_length=64)
+    mass = models.FloatField()
+    number_states = models.PositiveIntegerField()  # auto-increase/decrease on states creation/deletion
+    number_transitions = models.PositiveIntegerField()  # auto-increase/decrease on states creation/deletion
 
     def __str__(self):
         return str(self.molecule)
@@ -141,20 +154,21 @@ class Isotopologue(ModelMixin, models.Model):
         # Only a single instance per iso_formula_str should live in the database:
         try:
             cls.get_from_iso_formula_str(iso_formula_str)
-            raise MoleculeError(f'{cls._meta.object_name}({iso_formula_str}) already exists!')
+            raise MoleculeError(f'Isotopologue({iso_formula_str}) already exists!')
         except cls.DoesNotExist:
             pass
         try:
             cls.get_from_formula_str(molecule.formula_str)
             raise \
                 MoleculeError(
-                    f'{cls._meta.object_name}({cls._meta.object_name}({molecule.formula_str})) already exists!')
+                    f'Isotopologue(Molecule({molecule.formula_str})) already exists!')
         except cls.DoesNotExist:
             pass
 
-        return cls.objects.create(molecule=molecule, iso_formula_str=iso_formula_str,
-                                  iso_slug=pyvalem_formula.slug, inchi_key=inchi_key, dataset_name=dataset_name,
-                                  version=version, html=pyvalem_formula.html, mass=pyvalem_formula.mass)
+        instance = cls(molecule=molecule, iso_formula_str=iso_formula_str, inchi_key=inchi_key,
+                       dataset_name=dataset_name, version=version)
+        instance.sync(propagate=False)
+        return instance
 
     @property
     def transition_set(self):
@@ -204,11 +218,3 @@ class Isotopologue(ModelMixin, models.Model):
             return '<i>v</i>'
         else:
             return f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})"
-
-    # @property
-    # def number_states(self):
-    #     return self.state_set.count()
-    #
-    # @property
-    # def number_transitions(self):
-    #     return self.transition_set.count()

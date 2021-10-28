@@ -1,4 +1,8 @@
+from collections import OrderedDict
+
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 
 from pyvalem.vibrational_state import VibrationalState
 
@@ -26,15 +30,24 @@ class State(ModelMixin, models.Model):
     # e.g. '(0, 1, 0, 3)', '(0, 0, 0, 0)', and '5'
     vib_state_str = models.CharField(max_length=64)
 
-    # following fields are auto-added when using the dedicated create_from methods.
+    # the sync functions dict needs to be ordered, as the html attribute sync function expects el_state_html and
+    # vib_state_html already synced
+    sync_functions = OrderedDict([
+        ('el_state_html', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[1]),
+        ('vib_state_html', lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1]),
+        ('html', lambda state: state.get_html()),
+        ('number_transitions_from', lambda state: state.transition_from_set.count()),
+        ('number_transitions_to', lambda state: state.transition_to_set.count()),
+    ])
+
+    # following fields are auto-added when using the dedicated create_from methods (or the sync method).
     el_state_html = models.CharField(max_length=64)
     vib_state_html = models.CharField(max_length=64)
     html = models.CharField(max_length=128)
-
     # The following fields describe the meta-data about the transitions assigned to the state, handled automatically
     # when using the dedicated create_from methods...
-    number_transitions_from = models.PositiveIntegerField(default=0)  # auto-inc/dec on transition creation/deletion
-    number_transitions_to = models.PositiveIntegerField(default=0)  # auto-inc/dec on transition creation/deletion
+    number_transitions_from = models.PositiveIntegerField()  # auto-inc/dec on transition creation/deletion
+    number_transitions_to = models.PositiveIntegerField()  # auto-inc/dec on transition creation/deletion
 
     def __str__(self):
         return get_state_str(self.isotopologue, self.el_state_str, self.vib_state_str)
@@ -96,9 +109,9 @@ class State(ModelMixin, models.Model):
             raise StateError('At least one of electronic or vibrational states needs to be specified!')
 
         # ensure the passed el_state_str is valid and get canonicalised version and html.
-        el_state_str, el_state_html = canonicalise_and_parse_el_state_str(el_state_str)
+        el_state_str, _ = canonicalise_and_parse_el_state_str(el_state_str)
         # the following also ensures that the passed vib_state_str is valid
-        vib_state_quanta, vib_state_html = validate_and_parse_vib_state_str(vib_state_str)
+        vib_state_quanta, _ = validate_and_parse_vib_state_str(vib_state_str)
         vib_state_dim = len(vib_state_quanta)
 
         # state_str is only for error reporting:
@@ -147,16 +160,16 @@ class State(ModelMixin, models.Model):
                 f'by having vib_state_dim > 0 or non-empty ground_el_state_str.'
             )
 
-        # build the html field, containing not only state html but also the html of the molecule:
-        molecule_html = isotopologue.molecule.html
-        state_html = '; '.join(s for s in [el_state_html, vib_state_html] if s)
-        html = f'{molecule_html} {state_html}'
+        instance = cls(isotopologue=isotopologue, lifetime=lifetime, energy=energy, el_state_str=el_state_str,
+                       vib_state_str=vib_state_str)
+        instance.sync(propagate=False)
+        isotopologue.sync(sync_only=['number_states'])
+        return instance
 
-        return cls.objects.create(
-            isotopologue=isotopologue, lifetime=lifetime, energy=energy,
-            el_state_str=el_state_str, vib_state_str=vib_state_str,
-            el_state_html=el_state_html, vib_state_html=vib_state_html, html=html
-        )
+    def get_html(self):
+        molecule_html = self.isotopologue.molecule.html
+        states_html = "; ".join(s for s in [self.el_state_html, self.vib_state_html] if s)
+        return f'{molecule_html} {states_html}'
 
     @property
     def vib_state_str_alt(self):
@@ -175,10 +188,15 @@ class State(ModelMixin, models.Model):
         vib_state_str_alt = repr(VibrationalState(pyvalem_str))
         return vib_state_str_alt
 
-    # @property
-    # def number_transitions_from(self):
-    #     return self.transition_from_set.count()
-    #
-    # @property
-    # def number_transitions_to(self):
-    #     return self.transition_to_set.count()
+    @property
+    def transition_set(self):
+        from elida.apps.transition.models import Transition
+        return Transition.objects.filter(models.Q(initial_state=self) | models.Q(final_state=self))
+
+
+# noinspection PyUnusedLocal
+@receiver(post_save)
+@receiver(post_delete)
+def sync_states(sender, instance, **kwargs):
+    if sender == State:
+        instance.isotopologue.sync(sync_only=['number_states'])
