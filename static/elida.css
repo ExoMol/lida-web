@@ -76,3 +76,7 @@
 .modal-details > div > div > div:first-child {
     font-weight: bold;
 }
+
+.hide-column {
+    display: none;
+}

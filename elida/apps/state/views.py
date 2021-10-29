@@ -16,4 +16,6 @@ class StateListView(ListView):
         mol_html = mol.html
         context['table_heading'] = f'States of {mol_html}'
         context['title'] = f'{mol.slug} states'
+        context['resolves_el'] = mol.isotopologue.resolves_el()
+        context['resolves_vib'] = mol.isotopologue.resolves_vib()
         return context

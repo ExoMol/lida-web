@@ -233,6 +233,12 @@ class Isotopologue(ModelMixin, models.Model):
         else:
             return f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})"
 
+    def resolves_el(self):
+        return bool(self.ground_el_state_str)
+
+    def resolves_vib(self):
+        return bool(self.vib_state_dim)
+
     def sync(self, verbose=False, sync_only=None, skip=None):
         """Runs all the sync_functions on the relevant fields. See the the method in the ModelMixin for documentation.
         Warning: Does not call save, must be saved after sync is called!"""

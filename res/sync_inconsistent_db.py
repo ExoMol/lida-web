@@ -5,6 +5,15 @@ from elida.apps.molecule.models import Molecule, Isotopologue
 from elida.apps.state.models import State
 from elida.apps.transition.models import Transition
 
-for model in Molecule, Isotopologue, State, Transition:
+kwargs = {
+    'molecule': {'verbose': True, 'propagate': False},
+    'isotopologue': {'verbose': True},
+    'state': {'verbose': True, 'propagate': False},
+    'transition': {'verbose': True},
+}
+
+for model, model_name in zip([Molecule, Isotopologue, State, Transition],
+                             ['molecule', 'isotopologue', 'state', 'transition']):
     for instance in tqdm(model.objects.all()):
-        instance.sync(verbose=True, propagate=False)
+        instance.sync(**kwargs[model_name])
+        instance.save()

@@ -36,9 +36,9 @@
                 </div>
                 <div class="row">
                   <div class="col-7">Resolves electronic states:</div>
-                  <div class="col-5">{% if molecule.isotopologue.ground_el_state_str %}Yes{% else %}No{% endif %}</div>
+                  <div class="col-5">{% if molecule.isotopologue.resolves_el %}Yes{% else %}No{% endif %}</div>
                 </div>
-                {% if molecule.isotopologue.ground_el_state_str %}
+                {% if molecule.isotopologue.resolves_el %}
                   <div class="row">
                     <div class="col-7">Electronic ground state:</div>
                     <div class="col-5">{{ molecule.isotopologue.ground_el_state_html }}</div>
@@ -46,9 +46,9 @@
                 {% endif %}
                 <div class="row">
                   <div class="col-7">Resolves vibrational states:</div>
-                  <div class="col-5">{% if molecule.isotopologue.vib_state_dim %}Yes{% else %}No{% endif %}</div>
+                  <div class="col-5">{% if molecule.isotopologue.resolves_vib %}Yes{% else %}No{% endif %}</div>
                 </div>
-                {% if molecule.isotopologue.vib_state_dim %}
+                {% if molecule.isotopologue.resolves_vib %}
                   <div class="row">
                     <div class="col-7">Vibrational quantum numbers:</div>
                     <div class="col-5">{{ molecule.isotopologue.vib_quantum_numbers_html }}</div>
