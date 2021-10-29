@@ -89,3 +89,38 @@ class TestTransition(TestCase):
         t = Transition.get_from_states(s, self.state_low)
         self.assertEqual(t.delta_energy, -42.1)
         self.assertEqual(t.html, 'CO<sub>2</sub> <b><i>v</i></b>=(9, 9, 9) → CO<sub>2</sub> <b><i>v</i></b>=(0, 0, 0)')
+
+    def test_create_delete_transitions(self):
+        self.assertEqual(self.isotopologue.number_transitions, 0)
+        self.assertEqual(self.isotopologue.molecule.formula_str, 'CO2')
+
+        s1, s2, s3 = self.state_high, self.state_low, State.create_from_data(self.isotopologue, lifetime=0.1,
+                                                                             energy=42, vib_state_str='(9, 9, 9)')
+
+        tr1 = Transition.create_from_data(s1, s2, 0, 0)
+        tr2 = Transition.create_from_data(s3, s2, 0, 0)
+        tr3 = Transition.create_from_data(s3, s1, 0, 0)
+
+        # direct create/save should change the Isotopologue.number_transitions etc
+        for iso in Isotopologue.get_from_formula_str('CO2'), self.isotopologue:
+            self.assertEqual(iso.number_transitions, Transition.objects.count())
+        self.assertEqual((s1.transition_from_set.count(), s1.number_transitions_from), (1, 1))
+        self.assertEqual((s1.transition_to_set.count(), s1.number_transitions_to), (1, 1))
+        self.assertEqual((s2.transition_from_set.count(), s2.number_transitions_from), (0, 0))
+        self.assertEqual((s2.transition_to_set.count(), s2.number_transitions_to), (2, 2))
+        self.assertEqual((s3.transition_from_set.count(), s3.number_transitions_from), (2, 2))
+        self.assertEqual((s3.transition_to_set.count(), s3.number_transitions_to), (0, 0))
+
+        # direct delete should change the Isotopologue.number_transitions
+        tr3.delete()
+        iso = Isotopologue.get_from_formula_str('CO2')
+        self.assertEqual(iso.number_transitions, Transition.objects.count())
+        self.assertEqual((s1.transition_from_set.count(), s1.number_transitions_from), (1, 1))
+        self.assertEqual((s1.transition_to_set.count(), s1.number_transitions_to), (0, 0))
+        self.assertEqual((s2.transition_from_set.count(), s2.number_transitions_from), (0, 0))
+        self.assertEqual((s2.transition_to_set.count(), s2.number_transitions_to), (2, 2))
+        self.assertEqual((s3.transition_from_set.count(), s3.number_transitions_from), (1, 1))
+        self.assertEqual((s3.transition_to_set.count(), s3.number_transitions_to), (0, 0))
+
+        # indirect/batch delete/save sadly does not trigger the changes in number_transitions in Isotopologue and
+        # States, I just could not make it work :(

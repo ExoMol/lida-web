@@ -310,3 +310,21 @@ class TestState(TestCase):
         s0.sync(propagate=True)
         t = Transition.get_from_states(s1, s0)
         self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>3</sup>Π; <i>v</i>=4', t.html)
+
+    def test_create_delete_state(self):
+        self.assertEqual(self.diff_isotopologue.state_set.count(), 0)
+        self.assertEqual(self.diff_isotopologue.number_states, 0)
+
+        s1 = State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='1', el_state_str='1SIGMA-')
+        s0 = State.create_from_data(self.diff_isotopologue, 0, 0, vib_state_str='0', el_state_str='1SIGMA-')
+
+        # direct create/save should change the Isotopologue.number_states
+        self.assertEqual(self.diff_isotopologue.state_set.count(), 2)
+        self.assertEqual(self.diff_isotopologue.number_states, 2)
+
+        # direct delete should change the Isotopologue.number_states
+        s1.delete()
+        self.assertEqual(self.diff_isotopologue.state_set.count(), 1)
+        self.assertEqual(self.diff_isotopologue.number_states, 1)
+
+        # any indirect or batch saving/deleting methods will not trigger the sync, but tough luck!

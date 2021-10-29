@@ -4,6 +4,7 @@ from django.dispatch import receiver
 
 from elida.apps.mixins import ModelMixin
 from elida.apps.state.models import State
+from elida.apps.molecule.models import Isotopologue
 from .exceptions import TransitionError
 
 
@@ -69,12 +70,14 @@ class Transition(ModelMixin, models.Model):
         instance.sync(propagate=False)
         return instance
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.initial_state.sync(sync_only=['number_transitions_from'], propagate=False)
+        self.final_state.sync(sync_only=['number_transitions_to'], propagate=False)
+        self.initial_state.isotopologue.sync(sync_only=['number_transitions'], propagate=False)
 
-# noinspection PyUnusedLocal
-@receiver(post_save)
-@receiver(post_delete)
-def sync_transitions(sender, instance, **kwargs):
-    if sender == Transition:
-        instance.initial_state.sync(sync_only=['number_transitions_from'])
-        instance.final_state.sync(sync_only=['number_transitions_to'])
-        instance.initial_state.isotopologue.sync(sync_only=['number_transitions'])
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.initial_state.sync(sync_only=['number_transitions_from'], propagate=False)
+        self.final_state.sync(sync_only=['number_transitions_to'], propagate=False)
+        self.initial_state.isotopologue.sync(sync_only=['number_transitions'], propagate=False)

@@ -164,7 +164,6 @@ class State(ModelMixin, models.Model):
         instance = cls(isotopologue=isotopologue, lifetime=lifetime, energy=energy, el_state_str=el_state_str,
                        vib_state_str=vib_state_str)
         instance.sync(propagate=False)
-        isotopologue.sync(sync_only=['number_states'])
         return instance
 
     def get_html(self):
@@ -194,10 +193,10 @@ class State(ModelMixin, models.Model):
         from elida.apps.transition.models import Transition
         return Transition.objects.filter(models.Q(initial_state=self) | models.Q(final_state=self))
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.isotopologue.sync(sync_only=['number_states'], propagate=False)
 
-# noinspection PyUnusedLocal
-@receiver(post_save)
-@receiver(post_delete)
-def sync_states(sender, instance, **kwargs):
-    if sender == State:
-        instance.isotopologue.sync(sync_only=['number_states'])
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.isotopologue.sync(sync_only=['number_states'], propagate=False)
