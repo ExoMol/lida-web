@@ -1,10 +1,8 @@
 from django.db import models
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 
 from elida.apps.mixins import ModelMixin
-from elida.apps.state.models import State
 from elida.apps.molecule.models import Isotopologue
+from elida.apps.state.models import State
 from .exceptions import TransitionError
 
 
@@ -71,17 +69,27 @@ class Transition(ModelMixin, models.Model):
 
         instance = cls(initial_state=initial_state, final_state=final_state, partial_lifetime=partial_lifetime,
                        branching_ratio=branching_ratio)
-        instance.sync(propagate=False)
+        instance.sync(verbose=False)
+        instance.save()
         return instance
+
+    def after_save_and_delete(self):
+        self.initial_state.sync(verbose=False, sync_only=['number_transitions_from'], propagate=False)
+        self.initial_state.save()
+        self.final_state.sync(verbose=False, sync_only=['number_transitions_to'], propagate=False)
+        self.final_state.save()
+        self.initial_state.isotopologue.sync(verbose=False, sync_only=['number_transitions'])
+        self.initial_state.isotopologue.save()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.initial_state.sync(sync_only=['number_transitions_from'], propagate=False)
-        self.final_state.sync(sync_only=['number_transitions_to'], propagate=False)
-        self.initial_state.isotopologue.sync(sync_only=['number_transitions'], propagate=False)
+        self.after_save_and_delete()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.initial_state.sync(sync_only=['number_transitions_from'], propagate=False)
-        self.final_state.sync(sync_only=['number_transitions_to'], propagate=False)
-        self.initial_state.isotopologue.sync(sync_only=['number_transitions'], propagate=False)
+        self.after_save_and_delete()
+
+    def sync(self, verbose=False, sync_only=None, skip=None):
+        """Runs all the sync_functions on the relevant fields. See the the method in the ModelMixin for documentation.
+        Warning: Does not call save, must be saved after sync is called!"""
+        super().sync(verbose=verbose, sync_only=sync_only, skip=skip)

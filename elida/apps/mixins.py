@@ -21,11 +21,12 @@ class ModelMixin:
     def model_name(self):
         return self._meta.model.__name__
 
-    def sync(self, verbose=False, propagate=True, sync_only=None, skip=None):
+    def sync(self, verbose, sync_only=None, skip=None):
         """Method to sync the instance with all the other related database models. All the fields which are not
         explicit inputs to the create_from_data method depend on other models related to this instance and can
         be synced by this method whenever the related models get changed.
         This is a way around this database model being very poorly normalized (in favor of performance).
+        WARNING: must call .save on the child class instance to commit the changes into database!
 
         Dependencies for the method calls:
             Molecule html sync should trigger State html sync
@@ -48,7 +49,6 @@ class ModelMixin:
             if val_synced != val_orig:
                 setattr(self, attr_name, val_synced)
                 update_log.append(f'updated {attr_name}: {val_orig} -> {val_synced}')
-        self.save()
 
         if verbose and len(update_log):
             object_repr = repr(self)
@@ -56,19 +56,3 @@ class ModelMixin:
             print(f'{object_repr}: {entry}')
             for entry in update_log:
                 print(f'{len(object_repr) * " "}  {entry}')
-
-        # sync propagation:
-        if propagate:
-            from elida.apps.molecule.models import Molecule
-            from elida.apps.state.models import State
-            if isinstance(self, Molecule) and 'html' in attributes_to_sync:
-                for state in self.isotopologue.state_set.all():
-                    state.sync(verbose=verbose, propagate=False,
-                               sync_only=['el_state_html', 'vib_state_html', 'state_html', 'html'])
-                for transition in self.isotopologue.transition_set.all():
-                    transition.sync(verbose=verbose, propagate=False,
-                                    sync_only=['initial_state_state_html', 'final_state_state_html', 'html'])
-            elif isinstance(self, State) and 'html' in attributes_to_sync:
-                for transition in self.transition_set.all():
-                    transition.sync(verbose=verbose, propagate=False,
-                                    sync_only=['initial_state_state_html', 'final_state_state_html', 'html'])

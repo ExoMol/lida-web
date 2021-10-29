@@ -63,8 +63,21 @@ class Molecule(ModelMixin, models.Model):
             pass
 
         instance = cls(formula_str=formula_str, name=name)
-        instance.sync(propagate=False)
+        instance.sync(verbose=False, propagate=False)
+        instance.save()
         return instance
+
+    def sync(self, verbose=False, sync_only=None, skip=None, propagate=False):
+        """Runs all the sync_functions on the relevant fields. See the the method in the ModelMixin for documentation.
+        Warning: Does not call save, must be saved after sync is called!"""
+        super().sync(verbose=verbose, sync_only=sync_only, skip=skip)
+        if propagate:
+            for state in self.isotopologue.state_set.all():
+                state.sync(verbose=verbose, propagate=False)
+                state.save()
+            for transition in self.isotopologue.transition_set.all():
+                transition.sync(verbose=verbose)
+                transition.save()
 
 
 class Isotopologue(ModelMixin, models.Model):
@@ -167,7 +180,8 @@ class Isotopologue(ModelMixin, models.Model):
 
         instance = cls(molecule=molecule, iso_formula_str=iso_formula_str, inchi_key=inchi_key,
                        dataset_name=dataset_name, version=version)
-        instance.sync(propagate=False)
+        instance.sync(verbose=False)
+        instance.save()
         return instance
 
     @property
@@ -218,3 +232,8 @@ class Isotopologue(ModelMixin, models.Model):
             return '<i>v</i>'
         else:
             return f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})"
+
+    def sync(self, verbose=False, sync_only=None, skip=None):
+        """Runs all the sync_functions on the relevant fields. See the the method in the ModelMixin for documentation.
+        Warning: Does not call save, must be saved after sync is called!"""
+        super().sync(verbose=verbose, sync_only=sync_only, skip=skip)

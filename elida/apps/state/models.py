@@ -1,9 +1,6 @@
 from collections import OrderedDict
 
 from django.db import models
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
-
 from pyvalem.vibrational_state import VibrationalState
 
 from elida.apps.mixins import ModelMixin
@@ -165,7 +162,8 @@ class State(ModelMixin, models.Model):
 
         instance = cls(isotopologue=isotopologue, lifetime=lifetime, energy=energy, el_state_str=el_state_str,
                        vib_state_str=vib_state_str)
-        instance.sync(propagate=False)
+        instance.sync(verbose=False, propagate=False)
+        instance.save()
         return instance
 
     def get_html(self):
@@ -195,10 +193,23 @@ class State(ModelMixin, models.Model):
         from elida.apps.transition.models import Transition
         return Transition.objects.filter(models.Q(initial_state=self) | models.Q(final_state=self))
 
+    def after_save_and_delete(self):
+        self.isotopologue.sync(verbose=False, sync_only=['number_states'])
+        self.isotopologue.save()
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.isotopologue.sync(sync_only=['number_states'], propagate=False)
+        self.after_save_and_delete()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.isotopologue.sync(sync_only=['number_states'], propagate=False)
+        self.after_save_and_delete()
+
+    def sync(self, verbose=False, sync_only=None, skip=None, propagate=False):
+        """Runs all the sync_functions on the relevant fields. See the the method in the ModelMixin for documentation.
+        Warning: Does not call save, must be saved after sync is called!"""
+        super().sync(verbose=verbose, sync_only=sync_only, skip=skip)
+        if propagate:
+            for transition in self.transition_set.all():
+                transition.sync(verbose=verbose)
+                transition.save()

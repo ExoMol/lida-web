@@ -281,6 +281,7 @@ class TestState(TestCase):
         s.el_state_str = '3PI'
         s.vib_state_str = '0'
         s.sync(propagate=False)
+        s.save()
         self.assertEqual(s.html, 'CO <sup>3</sup>Π; <i>v</i>=0')
         self.assertEqual(s.el_state_str, '3Π')
         self.assertEqual(s.vib_state_str, '0')
@@ -305,9 +306,11 @@ class TestState(TestCase):
         t = Transition.get_from_states(s1, s0)
         self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=0', t.html)
         s0.sync(propagate=False)
+        s0.save()
         t = Transition.get_from_states(s1, s0)
         self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=0', t.html)
         s0.sync(propagate=True)
+        s0.save()
         t = Transition.get_from_states(s1, s0)
         self.assertEqual('CO <sup>1</sup>Σ<sup>-</sup>; <i>v</i>=1 → CO <sup>3</sup>Π; <i>v</i>=4', t.html)
 

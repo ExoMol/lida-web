@@ -84,6 +84,7 @@ class TestTransition(TestCase):
         s = State.create_from_data(self.isotopologue, lifetime=0.1, energy=42, vib_state_str='(9, 9, 9)')
         t.initial_state = s
         t.sync()
+        t.save()
         self.assertEqual(t.delta_energy, -42.1)
         self.assertEqual(t.html, 'CO<sub>2</sub> <b><i>v</i></b>=(9, 9, 9) → CO<sub>2</sub> <b><i>v</i></b>=(0, 0, 0)')
         t = Transition.get_from_states(s, self.state_low)
