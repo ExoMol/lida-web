@@ -69,17 +69,10 @@
     white-space: nowrap;
 }
 
-.elida-details-table > * > tr > * {
-    width: 50%;
-    white-space: nowrap;
+.modal-details > div > div {
+    margin-bottom: 0.5rem;
 }
 
-.elida-details-table > * > tr > *:first-child {
-    text-align: right !important;
-    padding-right: 1rem !important;  /*pe-3*/
-}
-
-.elida-details-table > * > tr > *:nth-child(2) {
-    text-align: left !important;
-    padding-left: 1rem !important;  /*ps-3*/
+.modal-details > div > div > div:first-child {
+    font-weight: bold;
 }

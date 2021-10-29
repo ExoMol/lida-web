@@ -3,12 +3,6 @@ from .models import State
 from elida.apps.molecule.models import Molecule
 
 
-class StateDetailView(DetailView):
-    model = State
-    template_name = 'state_detail.html'
-    extra_context = {'title': 'State details'}
-
-
 class StateListView(ListView):
     template_name = 'state_list.html'
     extra_context = {'datatable_class': 'state-table'}

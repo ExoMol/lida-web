@@ -5,12 +5,6 @@ from elida.apps.state.models import State
 from elida.apps.molecule.models import Molecule
 
 
-class TransitionDetailView(DetailView):
-    model = Transition
-    template_name = 'transition_detail.html'
-    extra_context = {'title': 'Transition details'}
-
-
 class TransitionListView(ListView):
     template_name = 'transition_list.html'
     extra_context = {'datatable_class': 'transition-table'}

@@ -3,7 +3,8 @@
 {% block table %}
   <thead>
   <tr>
-    <th scope="col">State</th>
+    <th scope="col">Electronic state</th>
+    <th scope="col">Vibrational state</th>
     <th scope="col">Energy (eV)</th>
     <th scope="col">Lifetime (s)</th>
     <th scope="col">Transitions from</th>
@@ -13,7 +14,8 @@
   <tbody>
   {% for state in object_list %}
     <tr>
-      <td><a href="{% url 'state-detail-pk' state.pk %}" class="elida-link">{{ state.html }}</a></td>
+      <td>{{ state.el_state_html }}</td>
+      <td>{{ state.vib_state_html }}</td>
       <td>{{ state.energy|floatformat:-3 }}</td>
       <td>
         {% if state.lifetime is None %}

@@ -36,7 +36,8 @@ class State(ModelMixin, models.Model):
         ('el_state_str', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[0]),
         ('el_state_html', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[1]),
         ('vib_state_html', lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1]),
-        ('html', lambda state: state.get_html()),
+        ('state_html', lambda state: "; ".join(s for s in [state.el_state_html, state.vib_state_html] if s)),
+        ('html', lambda state: f'{state.isotopologue.molecule.html} {state.state_html}'),
         ('number_transitions_from', lambda state: state.transition_from_set.count()),
         ('number_transitions_to', lambda state: state.transition_to_set.count()),
     ])
@@ -44,6 +45,7 @@ class State(ModelMixin, models.Model):
     # following fields are auto-added when using the dedicated create_from methods (or the sync method).
     el_state_html = models.CharField(max_length=64)
     vib_state_html = models.CharField(max_length=64)
+    state_html = models.CharField(max_length=128)
     html = models.CharField(max_length=128)
     # The following fields describe the meta-data about the transitions assigned to the state, handled automatically
     # when using the dedicated create_from methods...

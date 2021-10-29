@@ -64,9 +64,11 @@ class ModelMixin:
             if isinstance(self, Molecule) and 'html' in attributes_to_sync:
                 for state in self.isotopologue.state_set.all():
                     state.sync(verbose=verbose, propagate=False,
-                               sync_only=['el_state_html', 'vib_state_html', 'html'])
+                               sync_only=['el_state_html', 'vib_state_html', 'state_html', 'html'])
                 for transition in self.isotopologue.transition_set.all():
-                    transition.sync(verbose=verbose, propagate=False, sync_only=['html'])
-            if isinstance(self, State) and 'html' in attributes_to_sync:
+                    transition.sync(verbose=verbose, propagate=False,
+                                    sync_only=['initial_state_state_html', 'final_state_state_html', 'html'])
+            elif isinstance(self, State) and 'html' in attributes_to_sync:
                 for transition in self.transition_set.all():
-                    transition.sync(verbose=verbose, propagate=propagate, sync_only=['html'])
+                    transition.sync(verbose=verbose, propagate=False,
+                                    sync_only=['initial_state_state_html', 'final_state_state_html', 'html'])
