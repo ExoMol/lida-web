@@ -1,6 +1,6 @@
 from django.urls import path
-from .views_molecule import StateListAjaxView
-# from .views_transition import TransitionFromListAjaxView, TransitionToListAjaxView, TransitionMoleculeListAjaxView
+from .views import StateListAjaxView
+# from .views import TransitionFromListAjaxView, TransitionToListAjaxView, TransitionMoleculeListAjaxView
 
 urlpatterns = [
     path('state/list/<str:mol_slug>/', StateListAjaxView.as_view(), name='state-list-ajax'),
