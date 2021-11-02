@@ -7,7 +7,6 @@ from elida.apps.molecule.models import Molecule
 
 class TransitionListView(ListView):
     template_name = 'transition_list.html'
-    extra_context = {'datatable_class': 'transition-table'}
 
     def get_context_data(self, **kwargs):
         context_data = super().get_context_data(**kwargs)

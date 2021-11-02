@@ -93,3 +93,11 @@
   {% endfor %}
   </tbody>
 {% endblock table %}
+
+{% block datatable_settings %}
+  <script>
+      $('#elida-datatable').DataTable({
+          order: [[1, 'asc'], [2, 'asc']],
+      });
+  </script>
+{% endblock datatable_settings %}

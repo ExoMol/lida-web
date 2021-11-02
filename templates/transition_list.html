@@ -22,3 +22,11 @@
   {% endfor %}
   </tbody>
 {% endblock table %}
+
+{% block datatable_settings %}
+  <script>
+      $('#elida-datatable').DataTable({
+          order: [[2, 'asc']],
+      });
+  </script>
+{% endblock datatable_settings %}

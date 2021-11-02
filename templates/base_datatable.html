@@ -8,10 +8,38 @@
       </h4>
     </div>
     <div class="table-responsive-md">
-      <table class="table table-sm table-dark table-hover elida-datatable {{ datatable_class }}">
+      <table class="table table-sm table-dark table-hover elida-datatable" id="elida-datatable">
         {% block table %}
         {% endblock table %}
       </table>
     </div>
   {% endautoescape %}
 {% endblock content %}
+
+{% block datatable_scripts %}
+  {# datatable and jquery js cdns: #}
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+  {# initialise the datatable: #}
+  <script>
+      $.extend(true, $.fn.dataTable.defaults, {
+          pagingType: "numbers",
+          {# hiding the pagination if only one page: #}
+          fnDrawCallback: function (oSettings) {
+              if (oSettings._iDisplayLength > oSettings.fnRecordsDisplay()) {
+                  $(oSettings.nTableWrapper).find('.dataTables_paginate').hide();
+                  $(oSettings.nTableWrapper).find('.dataTables_info').hide();
+              } else {
+                  $(oSettings.nTableWrapper).find('.dataTables_paginate').show();
+                  $(oSettings.nTableWrapper).find('.dataTables_info').show();
+              }
+          },
+          stateSave: false,
+          lengthChange: false,
+          autoWidth: true,
+          pageLength: 20,
+      });
+  </script>
+  {% block datatable_settings %}{% endblock datatable_settings %}
+{% endblock datatable_scripts %}
