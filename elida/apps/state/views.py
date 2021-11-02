@@ -1,4 +1,4 @@
-from django.views.generic import DetailView, ListView
+from django.views.generic import ListView
 from .models import State
 from elida.apps.molecule.models import Molecule
 

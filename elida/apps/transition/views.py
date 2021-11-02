@@ -1,6 +1,4 @@
-from django.shortcuts import render
-from django.views.generic import DetailView, ListView
-from .models import Transition
+from django.views.generic import ListView
 from elida.apps.state.models import State
 from elida.apps.molecule.models import Molecule
 
