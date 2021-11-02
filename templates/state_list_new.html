@@ -18,7 +18,16 @@
 {% block datatable_settings %}
   <script>
       $('#elida-datatable').DataTable({
-          order: [[1, 'asc']],
+          serverSide: true,
+          sAjaxSource: "{% url "state-list-ajax" mol_slug %}",
+          columns: [
+              {name: "el_state_html", data: 0, {% if not resolves_el %}visible: false{% endif %}},
+              {name: "vib_state_html", data: 1, {% if not resolves_vib %}visible: false{% endif %}},
+              {name: "energy", data: 2},
+              {name: "lifetime", data: 3},
+              {name: "number_transitions_from", data: 4},
+              {name: "number_transitions_to", data: 5},
+          ],
       });
   </script>
 {% endblock datatable_settings %}

@@ -13,6 +13,7 @@ class StateListView(ListView):
         context = super().get_context_data(**kwargs)
         mol = Molecule.objects.get(slug=self.kwargs['mol_slug'])
         mol_html = mol.html
+        context['mol_slug'] = self.kwargs['mol_slug']
         context['table_heading'] = f'States of {mol_html}'
         context['title'] = f'{mol.slug} states'
         context['resolves_el'] = mol.isotopologue.resolves_el()
