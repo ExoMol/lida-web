@@ -1,0 +1,24 @@
+{% extends "base_datatable.html" %}
+
+{% block table %}
+  <thead>
+  <tr>
+    <th scope="col">Electronic state</th>
+    <th scope="col">Vibrational state</th>
+    <th scope="col">Energy (eV)</th>
+    <th scope="col">Lifetime (s)</th>
+    <th scope="col">Transitions from</th>
+    <th scope="col">Transitions to</th>
+  </tr>
+  </thead>
+  <tbody>
+  </tbody>
+{% endblock table %}
+
+{% block datatable_settings %}
+  <script>
+      $('#elida-datatable').DataTable({
+          order: [[1, 'asc']],
+      });
+  </script>
+{% endblock datatable_settings %}
