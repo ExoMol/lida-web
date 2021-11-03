@@ -3,8 +3,8 @@
 {% block table %}
   <thead>
   <tr>
-    <th scope="col" {% if not resolves_el %}class="hide-column"{% endif %}>Electronic state</th>
-    <th scope="col" {% if not resolves_vib %}class="hide-column"{% endif %}>Vibrational state</th>
+    <th scope="col">Electronic state</th>
+    <th scope="col">Vibrational state</th>
     <th scope="col">Energy (eV)</th>
     <th scope="col">Lifetime (s)</th>
     <th scope="col">Transitions from</th>
@@ -12,36 +12,22 @@
   </tr>
   </thead>
   <tbody>
-  {% for state in object_list %}
-    <tr>
-      <td {% if not resolves_el %}class="hide-column"{% endif %}>{{ state.el_state_html }}</td>
-      <td {% if not resolves_vib %}class="hide-column"{% endif %}>{{ state.vib_state_html }}</td>
-      <td>{{ state.energy|floatformat:-3 }}</td>
-      <td>
-        {% if state.lifetime is None %}
-          ∞
-        {% else %}
-          {{ state.lifetime|stringformat:".2e" }}
-        {% endif %}
-      </td>
-      <td>
-        {% if state.number_transitions_from %}
-          <a href="{% url 'transition-list-from-state' state.pk %}" class="elida-link">{{ state.number_transitions_from }}</a>
-        {% endif %}
-      </td>
-      <td>
-        {% if state.number_transitions_to %}
-          <a href="{% url 'transition-list-to-state' state.pk %}" class="elida-link">{{ state.number_transitions_to }}</a>
-        {% endif %}
-      </td>
-    </tr>
-  {% endfor %}
   </tbody>
 {% endblock table %}
 
 {% block datatable_settings %}
   <script>
       $('#elida-datatable').DataTable({
+          serverSide: true,
+          sAjaxSource: "{% url "state-list-ajax" mol_slug %}",
+          columns: [
+              {name: "el_state_html", data: 0, {% if not resolves_el %}visible: false{% endif %}},
+              {name: "vib_state_html", data: 1, {% if not resolves_vib %}visible: false{% endif %}},
+              {name: "energy", data: 2},
+              {name: "lifetime", data: 3},
+              {name: "number_transitions_from", data: 4},
+              {name: "number_transitions_to", data: 5},
+          ],
           order: [[1, 'asc']],
       });
   </script>
