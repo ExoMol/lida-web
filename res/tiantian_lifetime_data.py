@@ -26,7 +26,7 @@ def get_computed_molecules_info():
     df = df.drop(columns=['iso_slug'])
 
     # rename the columns:
-    df.columns = [col if col != 'linelist' else 'dataset_name' for col in df.columns]
+    df.column_names = [col if col != 'linelist' else 'dataset_name' for col in df.column_names]
     assert len(df.index) == len(set(df.index))
     return df
 

@@ -19,7 +19,9 @@
   <script>
       $('#elida-datatable').DataTable({
           serverSide: true,
-          sAjaxSource: "{% url "state-list-ajax" mol_slug %}",
+          ajax: {
+              url: "{% url "state-list-ajax" mol_slug %}"
+          },
           columns: [
               {name: "el_state_html", data: 0, {% if not resolves_el %}visible: false{% endif %}},
               {name: "vib_state_html", data: 1, {% if not resolves_vib %}visible: false{% endif %}},
