@@ -25,10 +25,10 @@
           columns: [
               {name: "el_state_html", data: 0, {% if not resolves_el %}visible: false{% endif %}},
               {name: "vib_state_html", data: 1, {% if not resolves_vib %}visible: false{% endif %}},
-              {name: "energy", data: 2},
-              {name: "lifetime", data: 3},
-              {name: "number_transitions_from", data: 4},
-              {name: "number_transitions_to", data: 5},
+              {name: "energy", data: 2, searchable: false},
+              {name: "lifetime", data: 3, searchable: false},
+              {name: "number_transitions_from", data: 4, searchable: false},
+              {name: "number_transitions_to", data: 5, searchable: false},
           ],
           order: [[1, 'asc']],
       });
