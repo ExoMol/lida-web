@@ -11,6 +11,4 @@ urlpatterns = [
     path('data/transition/', include('elida.apps.transition.urls')),
 
     path('contact/', views.contact, name='website-contact'),
-
-    path('ajax/', include('elida.apps.ajax.urls')),
 ]

@@ -1,7 +1,8 @@
 
 from django.urls import path
-from .views import StateListView
+from .views import StateListView, StateDataTableView
 
 urlpatterns = [
     path('list/<str:mol_slug>/', StateListView.as_view(), name='state-list'),
+    path('ajax/list/<str:mol_slug>', StateDataTableView.as_view(), name='state-list-ajax')
 ]

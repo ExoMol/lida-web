@@ -29,10 +29,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django_datatables_serverside',
+
+    'elida.apps.api',
     'elida.apps.molecule',
     'elida.apps.state',
     'elida.apps.transition',
-    'elida.apps.api',
     'elida.apps.website',
 ]
 
