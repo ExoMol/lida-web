@@ -61,12 +61,24 @@
 }
 
 .elida-datatable > * > * > td {
-    border-bottom-width: 0;
-    padding: 0.17rem 0.25rem;
+    padding: 0.15rem 0.25rem;
 }
 
-.elida-datatable > * > * > * {
+.elida-datatable > thead > tr > th {
+    border-bottom-width: 1px;
+    border-bottom-color: white;
+}
+
+.elida-datatable > tfoot > tr > th {
+    border-top-width: 1px;
+    border-top-color: white;
+    padding-top: 0.5rem;
+}
+
+.elida-datatable > :not(caption) > * > * {
     white-space: nowrap;
+    border-top-width: 0;
+    border-bottom-width: 0;
 }
 
 .modal-details > div > div {
@@ -75,8 +87,4 @@
 
 .modal-details > div > div > div:first-child {
     font-weight: bold;
-}
-
-.hide-column {
-    display: none;
 }

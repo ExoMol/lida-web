@@ -1,20 +1,22 @@
-from django.views import View
-from django.http import JsonResponse
 import operator
-from django.db.models import Q
 from functools import reduce
+
+from django.db.models import Q
+from django.http import JsonResponse
+from django.views import View
+from django.urls import reverse
 
 from elida.apps.state.models import State
 
 
-class DataTablesServer(object):
-    def __init__(self, request, queryset):
+class DataTablesServer:
+    def __init__(self, request, queryset, value_getters=None):
 
         self.request = request
         # memo for all the received parameters already processed/parsed
         self.parameters_processed_memo = set()
         # all the parameters received structured in a nested nested dict
-        self.parameters_received = self._parse_parameters_received()
+        self.parameters_received = self._parse_parameters_received(request)
 
         self.queryset = queryset
 
@@ -22,6 +24,10 @@ class DataTablesServer(object):
         self.columns_num_to_field = {
             col_params['data']: col_params['name'] for col_params in self.parameters_received['columns']
         }
+
+        self.value_getters = value_getters
+        if self.value_getters is None:
+            self.value_getters = {}
 
     def _draw_request_value(self, key):
         request_value = self.request.GET[key]
@@ -35,7 +41,7 @@ class DataTablesServer(object):
         else:
             return True
 
-    def _parse_parameters_received(self):
+    def _parse_parameters_received(self, request):
         nested_values = {
             'draw': int(self._draw_request_value('draw')),
             'start': int(self._draw_request_value('start')),
@@ -49,7 +55,7 @@ class DataTablesServer(object):
             nested_values['search']['regex'] = self._bool(self._draw_request_value('search[regex]'))
         except KeyError:
             pass
-        for key_raw, val in self.request.GET.items():
+        for key_raw, val in request.GET.items():
             if key_raw not in self.parameters_processed_memo:
                 if key_raw.startswith('order'):
                     i, _ = key_raw[6:].split(']', 1)
@@ -69,23 +75,30 @@ class DataTablesServer(object):
                              'regex': self._bool(self._draw_request_value(f'columns[{i}][search][regex]'))
                          }}
                     )
-        # TODO: validate that there are no individual columns searches and no regex search!
+        # TODO: validate that there is no regex search enabled!
         return nested_values
 
     def _filter_queryset(self, queryset):
-        if not self.parameters_received['search']:
-            # searching is not even enabled
-            return queryset
-        if not self.parameters_received['search']['value']:
-            # searching is enabled, but the search field is empty
-            return queryset
-        search_val = self.parameters_received['search']['value']
-        query_filters = []
+        global_query_filters = []  # OR filters
+        local_query_filters = []  # AND filters
         for column_params in self.parameters_received['columns']:
+            field_name = column_params['name']
             if column_params['searchable']:
-                field_name = column_params['name']
-                query_filters.append(Q((f'{field_name}__contains', search_val)))
-        return queryset.filter(reduce(operator.or_, query_filters))
+                if self.parameters_received['search']:
+                    global_search_val = self.parameters_received['search']['value']
+                    if global_search_val:
+                        global_query_filters.append(Q((f'{field_name}__contains', global_search_val)))
+            local_search_val = column_params['search']['value']
+            if local_search_val:
+                local_query_filters.append(Q((f'{field_name}__contains', local_search_val)))
+        filtered_queryset = queryset
+        # global search filter
+        if global_query_filters:
+            filtered_queryset = filtered_queryset.filter(reduce(operator.or_, global_query_filters))
+        # local search filter:
+        if local_query_filters:
+            filtered_queryset = filtered_queryset.filter(reduce(operator.and_, local_query_filters))
+        return filtered_queryset
 
     def _sort_queryset(self, queryset):
         order_by_params = []
@@ -115,21 +128,52 @@ class DataTablesServer(object):
             'draw': str(self.parameters_received['draw']),
             'recordsTotal': records_total,
             'recordsFiltered': records_filtered,
-            'data': [
-                [getattr(row, field) for field in self.fields]
-                for row in queryset_sliced.all()
-            ]
+            'data': []
         }
+        for instance in queryset_sliced.all():
+            row = []
+            for field in self.fields:
+                if field in self.value_getters:
+                    row.append(self.value_getters[field](instance))
+                else:
+                    row.append(getattr(instance, field))
+            data_to_return['data'].append(row)
+
         return data_to_return
 
 
 class StateListAjaxView(View):
 
     def get(self, request, *args, **kwargs):
-        dt_server = DataTablesServer(request, self.queryset)
+        dt_server = DataTablesServer(request, self.queryset, self.value_getters)
         data_served = dt_server.serve_data()
         return JsonResponse(data_served)
 
     @property
     def queryset(self):
         return State.objects.filter(isotopologue__molecule__slug=self.kwargs['mol_slug']).all()
+
+    @property
+    def value_getters(self):
+        def number_transitions_from_value(instance):
+            val = instance.number_transitions_from
+            if not val:
+                return ''
+            href = reverse('transition-list-from-state', args=[instance.pk])
+            cls = 'elida-link'
+            return f'<a href="{href}" class="{cls}">{val}</a>'
+
+        def number_transitions_to_value(instance):
+            val = instance.number_transitions_to
+            if not val:
+                return ''
+            href = reverse('transition-list-to-state', args=[instance.pk])
+            cls = 'elida-link'
+            return f'<a href="{href}" class="{cls}">{val}</a>'
+
+        return {
+            'energy': lambda instance: f'{instance.energy:.3f}',
+            'lifetime': lambda instance: f'{instance.lifetime:.2e}' if instance.lifetime is not None else '∞',
+            'number_transitions_from': number_transitions_from_value,
+            'number_transitions_to': number_transitions_to_value
+        }
