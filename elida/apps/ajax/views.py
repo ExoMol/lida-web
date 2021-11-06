@@ -11,28 +11,18 @@ from elida.apps.state.models import State
 
 class DataTablesServer:
     def __init__(self, request, queryset, value_getters=None):
-
         self.request = request
-        # memo for all the received parameters already processed/parsed
-        self.parameters_processed_memo = set()
-        # all the parameters received structured in a nested nested dict
-        self.parameters_received = self._parse_parameters_received(request)
-
         self.queryset = queryset
-
-        self.fields = [column_parameters['name'] for column_parameters in self.parameters_received['columns']]
-        self.columns_num_to_field = {
-            col_params['data']: col_params['name'] for col_params in self.parameters_received['columns']
-        }
-
         self.value_getters = value_getters
         if self.value_getters is None:
             self.value_getters = {}
 
-    def _draw_request_value(self, key):
-        request_value = self.request.GET[key]
-        self.parameters_processed_memo.add(key)
-        return request_value
+        # memo for all the (received) parameters already processed/parsed
+        self.parameters_processed_memo = set()
+        # placeholder for any error messages:
+        self.error_message = ''
+        # all the parameters received from the DataTable structured in a nested nested dict
+        self.parameters_received = self._parse_ajax_request(request)
 
     @staticmethod
     def _bool(str_value):
@@ -41,7 +31,17 @@ class DataTablesServer:
         else:
             return True
 
-    def _parse_parameters_received(self, request):
+    def _draw_request_value(self, key):
+        request_value = self.request.GET[key]
+        self.parameters_processed_memo.add(key)
+        return request_value
+
+    def _parse_ajax_request(self, request):
+        if not request.is_ajax():
+            self.error_message = 'ERROR: Unknown request type, expected AJAX request!'
+            return
+
+        # build the values passed by the DataTable:
         nested_values = {
             'draw': int(self._draw_request_value('draw')),
             'start': int(self._draw_request_value('start')),
@@ -53,6 +53,10 @@ class DataTablesServer:
         try:
             nested_values['search']['value'] = self._draw_request_value('search[value]')
             nested_values['search']['regex'] = self._bool(self._draw_request_value('search[regex]'))
+            # check for unsupported regex search:
+            if nested_values['search']['regex']:
+                self.error_message = 'ERROR: Regex search is not supported!'
+                return
         except KeyError:
             pass
         for key_raw, val in request.GET.items():
@@ -75,7 +79,11 @@ class DataTablesServer:
                              'regex': self._bool(self._draw_request_value(f'columns[{i}][search][regex]'))
                          }}
                     )
-        # TODO: validate that there is no regex search enabled!
+                    # check for unsupported regex search:
+                    if nested_values['columns'][-1]['search']['regex']:
+                        self.error_message = 'ERROR: Regex search is not supported!'
+                        return
+
         return nested_values
 
     def _filter_queryset(self, queryset):
@@ -101,10 +109,13 @@ class DataTablesServer:
         return filtered_queryset
 
     def _sort_queryset(self, queryset):
+        columns_num_to_field = {
+            col_params['data']: col_params['name'] for col_params in self.parameters_received['columns']
+        }
         order_by_params = []
         for order_params in self.parameters_received['order']:
             column_num = order_params['column']
-            field_name = self.columns_num_to_field[column_num]
+            field_name = columns_num_to_field[column_num]
             order_dir = order_params['dir']
             order_by = field_name if order_dir == 'asc' else f'-{field_name}'
             order_by_params.append(order_by)
@@ -117,22 +128,21 @@ class DataTablesServer:
         length = self.parameters_received['length']
         return queryset[start:start + length]
 
-    def serve_data(self):
-        records_total = self.queryset.count()
+    def _build_data_to_return(self):
+        data_to_return = {
+            'draw': str(self.parameters_received['draw']),
+            'recordsTotal': self.queryset.count()
+        }
         queryset_filtered = self._filter_queryset(self.queryset)
-        records_filtered = queryset_filtered.count()
+        data_to_return['recordsFiltered'] = queryset_filtered.count()
         queryset_sorted = self._sort_queryset(queryset_filtered)
         queryset_sliced = self._slice_queryset(queryset_sorted)
 
-        data_to_return = {
-            'draw': str(self.parameters_received['draw']),
-            'recordsTotal': records_total,
-            'recordsFiltered': records_filtered,
-            'data': []
-        }
+        data_to_return['data'] = []
+        fields = [column_parameters['name'] for column_parameters in self.parameters_received['columns']]
         for instance in queryset_sliced.all():
             row = []
-            for field in self.fields:
+            for field in fields:
                 if field in self.value_getters:
                     row.append(self.value_getters[field](instance))
                 else:
@@ -141,13 +151,26 @@ class DataTablesServer:
 
         return data_to_return
 
+    def serve_data(self):
+        if self.error_message:
+            return JsonResponse({'error': self.error_message})
+        else:
+            data_to_return = self._build_data_to_return()
+            return JsonResponse(data_to_return)
 
-class StateListAjaxView(View):
+
+class ServerSideDataTableView(View):
+
+    queryset = None
+    value_getters = None
 
     def get(self, request, *args, **kwargs):
         dt_server = DataTablesServer(request, self.queryset, self.value_getters)
         data_served = dt_server.serve_data()
-        return JsonResponse(data_served)
+        return data_served
+
+
+class StateListAjaxView(ServerSideDataTableView):
 
     @property
     def queryset(self):
