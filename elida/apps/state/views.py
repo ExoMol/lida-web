@@ -23,46 +23,34 @@ class StateListView(ListView):
         return context
 
 
+def number_transitions_from_value(instance):
+    val = instance.number_transitions_from
+    if not val:
+        return ''
+    href = reverse('transition-list-from-state', args=[instance.pk])
+    cls = 'elida-link'
+    return f'<a href="{href}" class="{cls}">{val}</a>'
+
+
+def number_transitions_to_value(instance):
+    val = instance.number_transitions_to
+    if not val:
+        return ''
+    href = reverse('transition-list-to-state', args=[instance.pk])
+    cls = 'elida-link'
+    return f'<a href="{href}" class="{cls}">{val}</a>'
+
+
 class StateDataTableView(ServerSideDataTableView):
+    surrogate_columns_search = {'el_state_html': 'el_state_html_notags', 'vib_state_html': 'vib_state_html_notags'}
+    surrogate_columns_sort = {'vib_state_html': 'vib_state_sort_key'}
+    custom_value_getters = {
+        'energy': lambda instance: f'{instance.energy:.3f}',
+        'lifetime': lambda instance: f'{instance.lifetime:.2e}' if instance.lifetime is not None else '∞',
+        'number_transitions_from': number_transitions_from_value,
+        'number_transitions_to': number_transitions_to_value
+    }
 
     @property
     def queryset(self):
         return State.objects.filter(isotopologue__molecule__slug=self.kwargs['mol_slug']).all()
-
-    @property
-    def custom_value_getters(self):
-        def number_transitions_from_value(instance):
-            val = instance.number_transitions_from
-            if not val:
-                return ''
-            href = reverse('transition-list-from-state', args=[instance.pk])
-            cls = 'elida-link'
-            return f'<a href="{href}" class="{cls}">{val}</a>'
-
-        def number_transitions_to_value(instance):
-            val = instance.number_transitions_to
-            if not val:
-                return ''
-            href = reverse('transition-list-to-state', args=[instance.pk])
-            cls = 'elida-link'
-            return f'<a href="{href}" class="{cls}">{val}</a>'
-
-        return {
-            'energy': lambda instance: f'{instance.energy:.3f}',
-            'lifetime': lambda instance: f'{instance.lifetime:.2e}' if instance.lifetime is not None else '∞',
-            'number_transitions_from': number_transitions_from_value,
-            'number_transitions_to': number_transitions_to_value
-        }
-
-    @property
-    def surrogate_columns_search(self):
-        return {
-            # 'el_state_html': 'el_state_html_notags',
-            # 'vib_state_html': 'vib_state_html_notags'
-        }
-
-    @property
-    def surrogate_columns_sort(self):
-        return {
-            # 'vib_state_html': 'vib_state_sortable',
-        }

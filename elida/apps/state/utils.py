@@ -68,3 +68,8 @@ def get_state_str(isotopologue, el_state_str, vib_state_str):
     molecule_str = str(isotopologue.molecule)
     state_str = ';'.join(s for s in [el_state_str, f'v={vib_state_str.replace(" ", "")}'] if s)
     return f'{molecule_str} {state_str}'
+
+
+def leading_zeros(vib_state_str):
+    quanta_int, _ = validate_and_parse_vib_state_str(vib_state_str)
+    return '(' + ', '.join(f'{q:02d}' for q in quanta_int) + ')'
