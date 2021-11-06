@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from lxml import html
 
 from django.db import models
 from pyvalem.vibrational_state import VibrationalState
@@ -32,8 +33,11 @@ class State(ModelMixin, models.Model):
     sync_functions = OrderedDict([
         ('el_state_str', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[0]),
         ('el_state_html', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[1]),
+        ('el_state_html_notags', lambda state: html.fromstring(state.el_state_html).text_content()),
         ('vib_state_html', lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1]),
+        ('vib_state_html_notags', lambda state: html.fromstring(state.vib_state_html).text_content()),
         ('state_html', lambda state: "; ".join(s for s in [state.el_state_html, state.vib_state_html] if s)),
+        ('state_html_notags', lambda state: html.fromstring(state.state_html).text_content()),
         ('html', lambda state: f'{state.isotopologue.molecule.html} {state.state_html}'),
         ('number_transitions_from', lambda state: state.transition_from_set.count()),
         ('number_transitions_to', lambda state: state.transition_to_set.count()),
@@ -41,8 +45,11 @@ class State(ModelMixin, models.Model):
 
     # following fields are auto-added when using the dedicated create_from methods (or the sync method).
     el_state_html = models.CharField(max_length=64)
+    el_state_html_notags = models.CharField(max_length=64)
     vib_state_html = models.CharField(max_length=64)
+    vib_state_html_notags = models.CharField(max_length=64)
     state_html = models.CharField(max_length=128)
+    state_html_notags = models.CharField(max_length=128)
     html = models.CharField(max_length=128)
     # The following fields describe the meta-data about the transitions assigned to the state, handled automatically
     # when using the dedicated create_from methods...
