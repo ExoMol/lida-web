@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from lxml import html
 
 from django.db import models
 from pyvalem.vibrational_state import VibrationalState
@@ -7,7 +6,8 @@ from pyvalem.vibrational_state import VibrationalState
 from elida.apps.mixins import ModelMixin
 from elida.apps.molecule.models import Isotopologue
 from .exceptions import StateError
-from .utils import validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str, get_state_str, leading_zeros
+from .utils import (validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str, get_state_str, leading_zeros,
+                    strip_tags)
 
 
 class State(ModelMixin, models.Model):
@@ -33,12 +33,12 @@ class State(ModelMixin, models.Model):
     sync_functions = OrderedDict([
         ('el_state_str', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[0]),
         ('el_state_html', lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[1]),
-        ('el_state_html_notags', lambda state: html.fromstring(state.el_state_html).text_content()),
+        ('el_state_html_notags', lambda state: strip_tags(state.el_state_html)),
         ('vib_state_html', lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1]),
-        ('vib_state_html_notags', lambda state: html.fromstring(state.vib_state_html).text_content()),
+        ('vib_state_html_notags', lambda state: strip_tags(state.vib_state_html)),
         ('vib_state_sort_key', lambda state: leading_zeros(state.vib_state_str)),
         ('state_html', lambda state: '; '.join(s for s in [state.el_state_html, state.vib_state_html] if s)),
-        ('state_html_notags', lambda state: html.fromstring(state.state_html).text_content()),
+        ('state_html_notags', lambda state: strip_tags(state.state_html)),
         ('state_sort_key', lambda state: '; '.join(s for s in [state.el_state_str, state.vib_state_sort_key] if s)),
         ('html', lambda state: f'{state.isotopologue.molecule.html} {state.state_html}'),
         ('number_transitions_from', lambda state: state.transition_from_set.count()),

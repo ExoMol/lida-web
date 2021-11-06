@@ -1,4 +1,5 @@
-from pyvalem.state_parser import MolecularTermSymbol, VibrationalState
+from lxml import html
+from pyvalem.state_parser import MolecularTermSymbol
 
 from .exceptions import StateError
 
@@ -73,3 +74,9 @@ def get_state_str(isotopologue, el_state_str, vib_state_str):
 def leading_zeros(vib_state_str):
     quanta_int, _ = validate_and_parse_vib_state_str(vib_state_str)
     return '(' + ', '.join(f'{q:02d}' for q in quanta_int) + ')'
+
+
+def strip_tags(html_str):
+    if html_str == '':
+        return ''
+    return html.fromstring(html_str).text_content()
