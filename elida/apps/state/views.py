@@ -1,15 +1,12 @@
-from django.views.generic import ListView
+from django.views.generic import TemplateView
 from .models import State
 from elida.apps.molecule.models import Molecule
 from django_datatables_serverside.views import ServerSideDataTableView
 from django.urls import reverse
 
 
-class StateListView(ListView):
+class StateListView(TemplateView):
     template_name = 'state_list.html'
-
-    def get_queryset(self):
-        return State.objects.filter(isotopologue__molecule__slug=self.kwargs['mol_slug'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
