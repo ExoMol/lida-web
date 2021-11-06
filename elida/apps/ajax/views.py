@@ -1,5 +1,6 @@
 import operator
 from functools import reduce
+from abc import ABC, abstractmethod
 
 from django.db.models import Q
 from django.http import JsonResponse
@@ -9,13 +10,25 @@ from django.urls import reverse
 from elida.apps.state.models import State
 
 
-class DataTablesServer:
-    def __init__(self, request, queryset, value_getters=None):
+class _DataTablesServer:
+    def __init__(
+            self, request, queryset,
+            custom_value_getters=None,
+            surrogate_columns_search=None,
+            surrogate_columns_sort=None):
         self.request = request
         self.queryset = queryset
-        self.value_getters = value_getters
-        if self.value_getters is None:
-            self.value_getters = {}
+
+        # dicts of functions for refining the data:
+        self.custom_value_getters = custom_value_getters
+        if self.custom_value_getters is None:
+            self.custom_value_getters = {}
+        self.surrogate_columns_search = surrogate_columns_search
+        if self.surrogate_columns_search is None:
+            self.surrogate_columns_search = {}
+        self.surrogate_columns_sort = surrogate_columns_sort
+        if self.surrogate_columns_sort is None:
+            self.surrogate_columns_sort = {}
 
         # memo for all the (received) parameters already processed/parsed
         self.parameters_processed_memo = set()
@@ -91,6 +104,7 @@ class DataTablesServer:
         local_query_filters = []  # AND filters
         for column_params in self.parameters_received['columns']:
             field_name = column_params['name']
+            field_name = self.surrogate_columns_search.get(field_name, field_name)
             if column_params['searchable']:
                 if self.parameters_received['search']:
                     global_search_val = self.parameters_received['search']['value']
@@ -116,6 +130,7 @@ class DataTablesServer:
         for order_params in self.parameters_received['order']:
             column_num = order_params['column']
             field_name = columns_num_to_field[column_num]
+            field_name = self.surrogate_columns_sort.get(field_name, field_name)
             order_dir = order_params['dir']
             order_by = field_name if order_dir == 'asc' else f'-{field_name}'
             order_by_params.append(order_by)
@@ -143,8 +158,8 @@ class DataTablesServer:
         for instance in queryset_sliced.all():
             row = []
             for field in fields:
-                if field in self.value_getters:
-                    row.append(self.value_getters[field](instance))
+                if field in self.custom_value_getters:
+                    row.append(self.custom_value_getters[field](instance))
                 else:
                     row.append(getattr(instance, field))
             data_to_return['data'].append(row)
@@ -159,13 +174,25 @@ class DataTablesServer:
             return JsonResponse(data_to_return)
 
 
-class ServerSideDataTableView(View):
+class ServerSideDataTableView(View, ABC):
 
-    queryset = None
-    value_getters = None
+    custom_value_getters = None
+    surrogate_columns_search = None
+    surrogate_columns_sort = None
+
+    @property
+    @abstractmethod
+    def queryset(self):
+        pass
 
     def get(self, request, *args, **kwargs):
-        dt_server = DataTablesServer(request, self.queryset, self.value_getters)
+        dt_server = _DataTablesServer(
+            request=request,
+            queryset=self.queryset,
+            custom_value_getters=self.custom_value_getters,
+            surrogate_columns_search=self.surrogate_columns_search,
+            surrogate_columns_sort=self.surrogate_columns_sort
+        )
         data_served = dt_server.serve_data()
         return data_served
 
@@ -177,7 +204,7 @@ class StateListAjaxView(ServerSideDataTableView):
         return State.objects.filter(isotopologue__molecule__slug=self.kwargs['mol_slug']).all()
 
     @property
-    def value_getters(self):
+    def custom_value_getters(self):
         def number_transitions_from_value(instance):
             val = instance.number_transitions_from
             if not val:
@@ -200,3 +227,16 @@ class StateListAjaxView(ServerSideDataTableView):
             'number_transitions_from': number_transitions_from_value,
             'number_transitions_to': number_transitions_to_value
         }
+
+    # @property
+    # def surrogate_columns_search(self):
+    #     return {
+    #         'el_state_html': 'el_state_html_notags',
+    #         'vib_state_html': 'vib_state_html_notags'
+    #     }
+    #
+    # @property
+    # def surrogate_columns_sort(self):
+    #     return {
+    #         'vib_state_html': 'vib_state_sortable',
+    #     }
