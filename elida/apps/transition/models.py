@@ -20,15 +20,9 @@ class Transition(ModelMixin, models.Model):
 
     sync_functions = {
         'delta_energy': lambda trans: trans.final_state.energy - trans.initial_state.energy,
-        'initial_state_state_html': lambda trans: trans.initial_state.state_html,
-        'final_state_state_html': lambda trans: trans.final_state.state_html,
-        'html': lambda trans: f'{trans.initial_state.html} → {trans.final_state.html}'
     }
 
     delta_energy = models.FloatField()
-    initial_state_state_html = models.CharField(max_length=128)  # simply copies initial_state.state_html
-    final_state_state_html = models.CharField(max_length=128)  # simply copies final_state.state_html
-    html = models.CharField(max_length=256)
 
     def __str__(self):
         return f'{self.initial_state} → {self.final_state}'

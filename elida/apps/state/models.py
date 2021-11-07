@@ -40,7 +40,6 @@ class State(ModelMixin, models.Model):
         ('state_html', lambda state: '; '.join(s for s in [state.el_state_html, state.vib_state_html] if s)),
         ('state_html_notags', lambda state: strip_tags(state.state_html)),
         ('state_sort_key', lambda state: '; '.join(s for s in [state.el_state_str, state.vib_state_sort_key] if s)),
-        ('html', lambda state: f'{state.isotopologue.molecule.html} {state.state_html}'),
         ('number_transitions_from', lambda state: state.transition_from_set.count()),
         ('number_transitions_to', lambda state: state.transition_to_set.count()),
     ])
@@ -54,7 +53,6 @@ class State(ModelMixin, models.Model):
     state_html = models.CharField(max_length=128)
     state_html_notags = models.CharField(max_length=128)
     state_sort_key = models.CharField(max_length=128)
-    html = models.CharField(max_length=128)
     # The following fields describe the meta-data about the transitions assigned to the state, handled automatically
     # when using the dedicated create_from methods...
     number_transitions_from = models.PositiveIntegerField()  # auto-inc/dec on transition creation/deletion
