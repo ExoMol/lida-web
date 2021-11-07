@@ -1,0 +1,111 @@
+<!--
+Requires in context:
+  table_heading: str
+  search_footer: bool
+  ajax_url: str
+  length_change: bool
+  columns: list[namedtuple('Column', 'heading model_field index visible searchable individual_search')]
+  initial_order: list[namedtuple('Order', 'index dir')]
+//-->
+
+{% extends "base.html" %}
+
+{% block content %}
+  {% autoescape off %}
+    <div class="table-responsive-md">
+      <table class="table table-sm table-dark table-hover elida-datatable" id="elida-datatable">
+        <thead>
+        <tr>
+          {% for column in columns %}
+            <th scope="col">{{ column.heading }}</th>
+          {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+        {% if search_footer %}
+          <tfoot>
+          <tr>
+            {% for column in columns %}
+              <th scope="col">
+                {% if column.individual_search %}
+                  <label>
+                    <input type="text" class="form-control form-control-sm w-100" placeholder="{{ column.heading }}">
+                  </label>
+                {% else %}
+                  {{ column.heading }}
+                {% endif %}
+              </th>
+            {% endfor %}
+          </tr>
+          </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  {% endautoescape %}
+{% endblock content %}
+
+
+{% block datatable_scripts %}
+  {# datatable and jquery js cdns: #}
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+
+  {# initialise the datatable: #}
+  <script>
+
+      $('#elida-datatable').DataTable({
+          pagingType: "numbers",
+
+          {# hiding the pagination if only one page: #}
+          fnDrawCallback: function (oSettings) {
+              if (oSettings._iDisplayLength > oSettings.fnRecordsDisplay()) {
+                  $(oSettings.nTableWrapper).find('.dataTables_paginate').hide();
+                  $(oSettings.nTableWrapper).find('.dataTables_info').hide();
+              } else {
+                  $(oSettings.nTableWrapper).find('.dataTables_paginate').show();
+                  $(oSettings.nTableWrapper).find('.dataTables_info').show();
+              }
+          },
+
+          stateSave: false,
+          {% if not length_change %}
+              lengthChange: false,
+          {% endif %}
+          autoWidth: true,
+          pageLength: 20,
+          lengthMenu: [[20, 50, 100], ["20", "50", "100"]],
+          serverSide: true,
+          ajax: {
+              url: "{{ ajax_url }}"
+          },
+          columns: [
+              {% for col in columns %}
+                  {name: "{{ col.model_field }}", data: {{ col.index }}{% if not col.searchable %}, searchable: false{% endif %}{% if not col.visible %}, visible: false{% endif %}},
+              {% endfor %}
+          ],
+          order: [{% for col_sort in initial_order %}[{{ col_sort.index }}, "{{ col_sort.dir }}"],{% endfor %}],
+
+          {% if search_footer %}
+              {# the column-specific searching functionality in the footer #}
+              initComplete: function () {
+                  // Apply the column search
+                  this.api().columns().every(function () {
+                      const that = this;
+
+                      $('input', this.footer()).on('keyup change clear', function () {
+                          if (that.search() !== this.value) {
+                              that
+                                  .search(this.value)
+                                  .draw();
+                          }
+                      });
+                  });
+              }
+          {% endif %}
+      });
+
+  </script>
+
+{% endblock datatable_scripts %}

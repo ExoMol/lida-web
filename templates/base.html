@@ -1,6 +1,7 @@
 <!--
 Requires in context:
   title: str
+  content_heading: str
 //-->
 
 {% load static %}
@@ -72,6 +73,13 @@ Requires in context:
 <!-- Begin page content -->
 <main class="flex-shrink-0">
   <div class="container pt-4 pb-4 ps-5 pe-5">
+    <div class="container pb-2">
+      <h4 class="text-center">
+        {% autoescape off %}
+          {{ content_heading }}
+        {% endautoescape %}
+      </h4>
+    </div>
     {% block content %}{% endblock %}
   </div>
 </main>
