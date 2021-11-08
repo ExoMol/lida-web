@@ -29,7 +29,7 @@ Requires in context:
               <th scope="col">
                 {% if column.individual_search %}
                   <label>
-                    <input type="text" class="form-control form-control-sm w-100" placeholder="{{ column.heading }}">
+                    <input type="text" class="form-control form-control-sm w-100" placeholder="{% if column.placeholder %}{{ column.placeholder }}{% else %}{{ column.heading }}{% endif %}">
                   </label>
                 {% else %}
                   {{ column.heading }}
@@ -81,7 +81,12 @@ Requires in context:
           },
           columns: [
               {% for col in columns %}
-                  {name: "{{ col.model_field }}", data: {{ col.index }}{% if not col.searchable %}, searchable: false{% endif %}{% if not col.visible %}, visible: false{% endif %}},
+                  {
+                      name: "{{ col.model_field }}",
+                      data: {{ col.index }}{% if not col.searchable %},
+                      searchable: false{% endif %}{% if not col.visible %},
+                      visible: false{% endif %}
+                  },
               {% endfor %}
           ],
           order: [{% for col_sort in initial_order %}[{{ col_sort.index }}, "{{ col_sort.dir }}"],{% endfor %}],

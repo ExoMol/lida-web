@@ -7,6 +7,10 @@
     --text-muted: #6c757d;
 }
 
+.hidden-element {
+    display: none !important;
+}
+
 .accent-color {
     color: var(--accent-color);
     font-weight: bold;

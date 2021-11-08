@@ -233,9 +233,11 @@ class Isotopologue(ModelMixin, models.Model):
         else:
             return f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})"
 
+    @property
     def resolves_el(self):
         return bool(self.ground_el_state_str)
 
+    @property
     def resolves_vib(self):
         return bool(self.vib_state_dim)
 

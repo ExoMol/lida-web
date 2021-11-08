@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from lxml import html
 from pyvalem.state_parser import MolecularTermSymbol
 
@@ -80,3 +82,7 @@ def strip_tags(html_str):
     if html_str == '':
         return ''
     return html.fromstring(html_str).text_content()
+
+
+Column = namedtuple('Column', 'heading model_field index visible searchable individual_search placeholder')
+Order = namedtuple('Order', 'index dir')

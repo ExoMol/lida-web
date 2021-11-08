@@ -1,15 +1,10 @@
-from collections import namedtuple
-
 from django.urls import reverse
 from django.views.generic import TemplateView
 from django_datatables_serverside.views import ServerSideDataTableView
 
 from elida.apps.molecule.models import Molecule
 from elida.apps.state.models import State
-
-# TODO: the same classes are defined also in molecule and state! Clean up!
-Column = namedtuple('Column', 'heading model_field index visible searchable individual_search')
-Order = namedtuple('Order', 'index dir')
+from elida.apps.state.utils import Column, Order
 
 
 class Base(TemplateView):
@@ -17,11 +12,11 @@ class Base(TemplateView):
     extra_context = {
         'search_footer': True, 'length_change': True, 'initial_order': [Order(0, 'asc'), Order(1, 'asc')],
         'columns': [
-            Column('Initial state', 'initial_state__state_html', 0, True, True, True),
-            Column('Final state', 'final_state__state_html', 1, True, True, True),
-            Column('Δ<em>E</em> (eV)', 'delta_energy', 2, True, False, False),
-            Column('Partial lifetime (s)', 'partial_lifetime', 3, True, False, False),
-            Column('Branching ratio', 'branching_ratio', 4, True, False, False),
+            Column('Initial state', 'initial_state__state_html', 0, True, True, True, ''),
+            Column('Final state', 'final_state__state_html', 1, True, True, True, ''),
+            Column('Δ<em>E</em> (eV)', 'delta_energy', 2, True, False, False, ''),
+            Column('Partial lifetime (s)', 'partial_lifetime', 3, True, False, False, ''),
+            Column('Branching ratio', 'branching_ratio', 4, True, False, False, ''),
         ]
     }
 
