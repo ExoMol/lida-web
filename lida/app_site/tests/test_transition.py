@@ -123,14 +123,14 @@ class TestTransition(TestCase):
         s2 = State.create_from_data(self.isotopologue, lifetime=0.1, energy=2, vib_state_str='(0, 2, 0)')
         s3 = State.create_from_data(self.isotopologue, lifetime=0.1, energy=3, vib_state_str='(0, 0, 3)')
 
-        tr1 = Transition.create_from_data(s1, s2, 1, 1)
-        tr2 = Transition.create_from_data(s3, s2, 1, 1)
+        tr1_pk = Transition.create_from_data(s1, s2, 1, 1).pk
+        tr2_pk = Transition.create_from_data(s3, s2, 1, 1).pk
 
-        self.assertEqual(tr1.delta_energy, 1)
-        self.assertEqual(tr2.delta_energy, -1)
+        self.assertEqual(Transition.objects.get(pk=tr1_pk).delta_energy, 1)
+        self.assertEqual(Transition.objects.get(pk=tr2_pk).delta_energy, -1)
         s2.energy = 42
-        self.assertEqual(tr1.delta_energy, 1)
-        self.assertEqual(tr2.delta_energy, -1)
+        self.assertEqual(Transition.objects.get(pk=tr1_pk).delta_energy, 1)
+        self.assertEqual(Transition.objects.get(pk=tr2_pk).delta_energy, -1)
         s2.save()
-        self.assertEqual(tr1.delta_energy, 41)
-        self.assertEqual(tr2.delta_energy, 39)
+        self.assertEqual(Transition.objects.get(pk=tr1_pk).delta_energy, 41)
+        self.assertEqual(Transition.objects.get(pk=tr2_pk).delta_energy, 39)

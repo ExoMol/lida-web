@@ -108,7 +108,6 @@ class Isotopologue(ModelMixin, models.Model):
         instance = cls(molecule=molecule, iso_formula_str=iso_formula_str, inchi_key=inchi_key,
                        dataset_name=dataset_name, version=version)
         instance.sync()
-        instance.save()
         return instance
 
     @property

@@ -63,5 +63,4 @@ class Molecule(ModelMixin, models.Model):
 
         instance = cls(formula_str=formula_str, name=name)
         instance.sync()
-        instance.save()
         return instance

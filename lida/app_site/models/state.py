@@ -172,7 +172,6 @@ class State(ModelMixin, models.Model):
         instance = cls(isotopologue=isotopologue, lifetime=lifetime, energy=energy, el_state_str=el_state_str,
                        vib_state_str=vib_state_str)
         instance.sync()
-        instance.save()
         return instance
 
     def get_html(self):
@@ -205,12 +204,11 @@ class State(ModelMixin, models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.isotopologue.sync(sync_only=['number_states'])
-        self.isotopologue.save()
-        # for transition in self.transition_set.all():
-        #     transition.sync(sync_only=['delta_energy'])
-        #     transition.save()
+        for transition in self.transition_set.all():
+            transition.sync(sync_only=['delta_energy'], save=False)
+            # now I need to save the delta_energy without triggering Transition.save() to avoid infinite recursion
+            transition.__class__.objects.filter(pk=transition.pk).update(delta_energy=transition.delta_energy)
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         self.isotopologue.sync(sync_only=['number_states'])
-        self.isotopologue.save()

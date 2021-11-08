@@ -63,16 +63,12 @@ class Transition(ModelMixin, models.Model):
         instance = cls(initial_state=initial_state, final_state=final_state, partial_lifetime=partial_lifetime,
                        branching_ratio=branching_ratio)
         instance.sync()
-        instance.save()
         return instance
 
     def after_save_and_delete(self):
         self.initial_state.sync(sync_only=['number_transitions_from'])
-        self.initial_state.save()
         self.final_state.sync(sync_only=['number_transitions_to'])
-        self.final_state.save()
         self.initial_state.isotopologue.sync(sync_only=['number_transitions'])
-        self.initial_state.isotopologue.save()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

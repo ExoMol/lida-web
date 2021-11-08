@@ -21,7 +21,7 @@ class ModelMixin:
     def model_name(self):
         return self._meta.model.__name__
 
-    def sync(self, verbose=False, sync_only=None, skip=None):
+    def sync(self, verbose=False, sync_only=None, skip=None, save=True):
         """Method to sync the instance with all the other related database models. All the fields which are not
         explicit inputs to the create_from_data method depend on other models related to this instance and can
         be synced by this method whenever the related models get changed.
@@ -52,3 +52,6 @@ class ModelMixin:
             print(f'{object_repr}: {entry}')
             for entry in update_log:
                 print(f'{len(object_repr) * " "}  {entry}')
+
+        if save:
+            self.save()
