@@ -5,7 +5,7 @@ from .utils import Column, Order
 
 
 class MoleculeListView(TemplateView):
-    template_name = 'datatable.html'
+    template_name = 'site/datatable.html'
     extra_context = {
         'title': 'Molecules',
         'content_heading': 'Molecules',

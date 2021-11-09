@@ -6,7 +6,7 @@ from .utils import Column, Order
 
 
 class _Base(TemplateView):
-    template_name = 'datatable.html'
+    template_name = 'site/datatable.html'
     extra_context = {
         'search_footer': True, 'length_change': True, 'initial_order': [Order(0, 'asc'), Order(1, 'asc')],
         'columns': [
