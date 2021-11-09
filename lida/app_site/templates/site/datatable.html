@@ -55,6 +55,7 @@ Requires in context:
   <script type="text/javascript" src="{% static "datatables/datatables.min.js" %}"></script>
 
   {# initialise the datatable: #}
+  <!--suppress JSDuplicatedDeclaration -->
   <script>
       $(document).ready(function () {
           const $datatable = $("#{{ datatable_id }}");
