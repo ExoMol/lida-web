@@ -36,25 +36,17 @@
     text-decoration: none;
 }
 
-.site-datatable > * > * > td {
-    padding: 0.15rem 0.25rem;
-}
-
 .site-datatable > thead > tr > th {
-    border-bottom-width: 1px;
-    border-bottom-color: white;
+    padding-bottom: 0.35rem;
 }
 
 .site-datatable > tfoot > tr > th {
-    border-top-width: 1px;
-    border-top-color: white;
-    padding-top: 0.5rem;
+    padding-top: 0.65rem;
+    border-bottom-width: 0;
 }
 
 .site-datatable > :not(caption) > * > * {
     white-space: nowrap;
-    border-top-width: 0;
-    border-bottom-width: 0;
 }
 
 .page-link {

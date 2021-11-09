@@ -1,6 +1,6 @@
 {% autoescape off %}
-  <a href="#" class="site-link" data-bs-toggle="modal" data-bs-target="#molecule-details-{{ molecule.pk }}">{{ molecule.html }}</a>
-  <div class="modal fade" role="dialog" id="molecule-details-{{ molecule.pk }}" tabindex="-1" aria-hidden="true" aria-labelledby="MoleculeDetails{{ molecule.pk }}">
+  <a href="#" class="site-link" data-bs-toggle="modal" data-bs-target="#molecule-details-{{ molecule.slug }}">{{ molecule.html }}</a>
+  <div class="modal fade" role="dialog" id="molecule-details-{{ molecule.slug }}" tabindex="0" aria-hidden="true" aria-labelledby="MoleculeDetails{{ molecule.slug }}">
     <div class="modal-dialog">
       <div class="modal-content bg-dark modal-details">
         <div class="modal-header">
