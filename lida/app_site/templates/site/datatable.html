@@ -3,53 +3,55 @@ Requires in context:
   search_footer: bool
   ajax_url: str
   length_change: bool
-  columns: list[namedtuple('Column', 'heading model_field index visible searchable individual_search')]
+  columns: list[namedtuple('Column', 'heading model_field index visible searchable individual_search placeholder')]
   initial_order: list[namedtuple('Order', 'index dir')]
 //-->
 
 {% extends "base.html" %}
 
+{% load static %}
+
+{% block css %}
+  <link rel="stylesheet" type="text/css" href="{% static "datatables/datatables.css" %}"/>
+{% endblock %}
+
 {% block content %}
-  {% autoescape off %}
-    <div class="table-responsive-md">
-      <table class="table table-sm table-dark table-hover site-datatable" id="site-datatable">
-        <thead>
+  <div class="table-responsive-md">
+    <table class="table table-sm table-dark table-hover site-datatable" id="site-datatable">
+      <thead>
+      <tr>
+        {% for column in columns %}
+          <th scope="col">{{ column.heading }}</th>
+        {% endfor %}
+      </tr>
+      </thead>
+      <tbody>
+      </tbody>
+      {% if search_footer %}
+        <tfoot>
         <tr>
           {% for column in columns %}
-            <th scope="col">{{ column.heading }}</th>
+            <th scope="col">
+              {% if column.individual_search %}
+                <label>
+                  <input type="text" class="form-control form-control-sm w-100" placeholder="{% if column.placeholder %}{{ column.placeholder }}{% else %}{{ column.heading }}{% endif %}">
+                </label>
+              {% else %}
+                {{ column.heading }}
+              {% endif %}
+            </th>
           {% endfor %}
         </tr>
-        </thead>
-        <tbody>
-        </tbody>
-        {% if search_footer %}
-          <tfoot>
-          <tr>
-            {% for column in columns %}
-              <th scope="col">
-                {% if column.individual_search %}
-                  <label>
-                    <input type="text" class="form-control form-control-sm w-100" placeholder="{% if column.placeholder %}{{ column.placeholder }}{% else %}{{ column.heading }}{% endif %}">
-                  </label>
-                {% else %}
-                  {{ column.heading }}
-                {% endif %}
-              </th>
-            {% endfor %}
-          </tr>
-          </tfoot>
-        {% endif %}
-      </table>
-    </div>
-  {% endautoescape %}
+        </tfoot>
+      {% endif %}
+    </table>
+  </div>
 {% endblock content %}
 
 
-{% block datatable_scripts %}
-  {# datatable and jquery js cdns: #}
-  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+{% block javascript %}
+
+  <script type="text/javascript" src="{% static "datatables/datatables.min.js" %}"></script>
 
   {# initialise the datatable: #}
   <script>
@@ -112,4 +114,4 @@ Requires in context:
 
   </script>
 
-{% endblock datatable_scripts %}
+{% endblock javascript %}
