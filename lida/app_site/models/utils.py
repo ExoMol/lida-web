@@ -1,19 +1,22 @@
 from lxml import html
-from pyvalem.state_parser import MolecularTermSymbol
+from pyvalem.states import MolecularTermSymbol
 
 from .exceptions import StateError
 
 
 def validate_and_parse_vib_state_str(vib_state_str):
     """Helper function validating and parsing the vib_state_str.
-    Returns list of quanta of the vibrational excitation, and the html representation. Raises StateError whenever the
-    passed vib_state_str is not in exactly the correct format.
+    Returns list of quanta of the vibrational excitation, and the html representation.
+    Raises StateError whenever the passed vib_state_str is not in exactly the correct
+    format.
     """
     if vib_state_str == '':
         return [], ''
 
-    invalid_state_str_msg = \
-        f'Vibrational string "{vib_state_str}" is not in the form of "(v_1, v_2, ..., v_n)" or "v"!'
+    invalid_state_str_msg = (
+        f'Vibrational string "{vib_state_str}" is not in the form of '
+        f'"(v_1, v_2, ..., v_n)" or "v"!'
+    )
 
     if vib_state_str[0] == '(' and vib_state_str[-1] == ')':
         quanta_str = vib_state_str.lstrip('(').rstrip(')').split(', ')
@@ -67,7 +70,9 @@ def get_el_state_html(el_state_str):
 
 def get_state_str(isotopologue, el_state_str, vib_state_str):
     molecule_str = str(isotopologue.molecule)
-    state_str = ';'.join(s for s in [el_state_str, f'v={vib_state_str.replace(" ", "")}'] if s)
+    state_str = ';'.join(
+        s for s in [el_state_str, f'v={vib_state_str.replace(" ", "")}'] if s
+    )
     return f'{molecule_str} {state_str}'
 
 

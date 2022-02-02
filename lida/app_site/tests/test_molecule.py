@@ -39,7 +39,9 @@ class TestMolecule(TestCase):
         self.assertEqual('CO2+', str(f))
 
     def test_repr(self):
-        f = Molecule.objects.create(formula_str='CO', name='', html='', charge=0, number_atoms=2, id=42)
+        f = Molecule.objects.create(
+            formula_str='CO', name='', html='', charge=0, number_atoms=2, id=42
+        )
         self.assertEqual(f.id, 42)
         self.assertEqual('42:Molecule(CO)', repr(f))
 

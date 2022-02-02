@@ -6,7 +6,9 @@ from app_site.models import Molecule
 
 
 def molecule_details_html(molecule):
-    return render_to_string('site/molecule_details.html', context={'molecule': molecule})
+    return render_to_string(
+        'site/molecule_details.html', context={'molecule': molecule}
+    )
 
 
 def number_states_value(molecule):

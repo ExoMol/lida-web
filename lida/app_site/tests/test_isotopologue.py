@@ -1,6 +1,6 @@
 from django.test import TestCase
 from pyvalem.formula import FormulaParseError
-from pyvalem.molecular_term_symbol import MolecularTermSymbolError
+from pyvalem.states.molecular_term_symbol import MolecularTermSymbolError
 
 from ..models import Molecule, Isotopologue
 from ..models.exceptions import MoleculeError
@@ -9,39 +9,59 @@ from ..models.exceptions import MoleculeError
 # noinspection PyTypeChecker
 class TestIsotopologue(TestCase):
     def setUp(self):
-        self.molecule = Molecule.objects.create(formula_str='CO', name='name', html='html', charge=0, number_atoms=2)
-        self.test_attributes = {'id': 42, 'iso_formula_str': '(12C)(16O)', 'iso_slug': '', 'inchi_key': '',
-                                'dataset_name': '', 'version': 1, 'html': '', 'mass': 1,
-                                'number_states': 0, 'number_transitions': 0}
+        self.molecule = Molecule.objects.create(
+            formula_str='CO', name='name', html='html', charge=0, number_atoms=2
+        )
+        self.test_attributes = {
+            'id': 42, 'iso_formula_str': '(12C)(16O)', 'iso_slug': '', 'inchi_key': '',
+            'dataset_name': '', 'version': 1, 'html': '', 'mass': 1, 'number_states': 0,
+            'number_transitions': 0
+        }
 
     def test_create_from_data(self):
         self.assertEqual(0, len(Isotopologue.objects.all()))
-        Isotopologue.create_from_data(self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
-                                      version=1)
+        Isotopologue.create_from_data(
+            self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
+            version=1
+        )
         self.assertEqual(1, len(Isotopologue.objects.all()))
 
     def test_create_from_data_duplicate(self):
         self.assertEqual(0, len(Isotopologue.objects.all()))
-        _ = Isotopologue.create_from_data(self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
-                                          version=1)
+        _ = Isotopologue.create_from_data(
+            self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
+            version=1
+        )
         self.assertEqual(1, len(Isotopologue.objects.all()))
         # same formula, different isotopologue formula (not allowed):
         with self.assertRaises(MoleculeError):
-            Isotopologue.create_from_data(self.molecule, iso_formula_str='(13C)(17O)', inchi_key='', dataset_name='',
-                                          version=1)
+            Isotopologue.create_from_data(
+                self.molecule, iso_formula_str='(13C)(17O)', inchi_key='',
+                dataset_name='', version=1
+            )
         # same isotopologue formula, different formula (not allowed):
         with self.assertRaises(MoleculeError):
-            new_m = Molecule.objects.create(formula_str='CO2', name='name', html='html', charge=0, number_atoms=3)
-            Isotopologue.create_from_data(new_m, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='', version=1)
+            new_m = Molecule.objects.create(
+                formula_str='CO2', name='name', html='html', charge=0, number_atoms=3
+            )
+            Isotopologue.create_from_data(
+                new_m, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
+                version=1
+            )
 
         # both different, no problem!
-        Isotopologue.create_from_data(new_m, iso_formula_str='(12C)2(16O)', inchi_key='', dataset_name='', version=1)
+        Isotopologue.create_from_data(
+            new_m, iso_formula_str='(12C)2(16O)', inchi_key='', dataset_name='',
+            version=1
+        )
         self.assertEqual(2, len(Isotopologue.objects.all()))
 
     def test_create_from_data_invalid(self):
         with self.assertRaises(FormulaParseError):
-            Isotopologue.create_from_data(self.molecule, iso_formula_str='(12C)-foo-(16O)', inchi_key='',
-                                          dataset_name='', version=1)
+            Isotopologue.create_from_data(
+                self.molecule, iso_formula_str='(12C)-foo-(16O)', inchi_key='',
+                dataset_name='', version=1
+            )
 
     def test_get_from_formula_str(self):
         with self.assertRaises(Isotopologue.DoesNotExist):
@@ -58,8 +78,10 @@ class TestIsotopologue(TestCase):
         self.assertEqual(i1, i2)
 
     def test_html_iso_slug(self):
-        i = Isotopologue.create_from_data(molecule=self.molecule, iso_formula_str='(12C)(16O)', inchi_key='',
-                                          dataset_name='', version=1)
+        i = Isotopologue.create_from_data(
+            molecule=self.molecule, iso_formula_str='(12C)(16O)', inchi_key='',
+            dataset_name='', version=1
+        )
         self.assertEqual(i.html, '<sup>12</sup>C<sup>16</sup>O')
         self.assertEqual(i.iso_slug, '12C-16O')
 
@@ -98,8 +120,10 @@ class TestIsotopologue(TestCase):
         self.assertEqual(1, i.vib_state_dim)
 
     def test_sync(self):
-        i = Isotopologue.create_from_data(self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
-                                          version=1)
+        i = Isotopologue.create_from_data(
+            self.molecule, iso_formula_str='(12C)(16O)', inchi_key='', dataset_name='',
+            version=1
+        )
         i.iso_formula_str = '(1H)2(16O)+'
         i.sync()
         self.assertEqual('', i.inchi_key)

@@ -23,15 +23,22 @@ def number_transitions_to_value(instance):
 
 
 class StateListAjaxView(ServerSideDataTableView):
-    surrogate_columns_search = {'el_state_html': 'el_state_html_notags', 'vib_state_html': 'vib_state_html_notags'}
+    surrogate_columns_search = {
+        'el_state_html': 'el_state_html_notags',
+        'vib_state_html': 'vib_state_html_notags'
+    }
     surrogate_columns_sort = {'vib_state_html': 'vib_state_sort_key'}
     custom_value_getters = {
         'energy': lambda instance: f'{instance.energy:.3f}',
-        'lifetime': lambda instance: f'{instance.lifetime:.2e}' if instance.lifetime is not None else '∞',
+        'lifetime':
+            lambda instance: f'{instance.lifetime:.2e}'
+            if instance.lifetime is not None else '∞',
         'number_transitions_from': number_transitions_from_value,
         'number_transitions_to': number_transitions_to_value
     }
 
     @property
     def queryset(self):
-        return State.objects.filter(isotopologue__molecule__slug=self.kwargs['mol_slug']).all()
+        return State.objects.filter(
+            isotopologue__molecule__slug=self.kwargs['mol_slug']
+        ).all()

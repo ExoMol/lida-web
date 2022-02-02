@@ -22,18 +22,23 @@ class ModelMixin:
         return self._meta.model.__name__
 
     def sync(self, verbose=False, sync_only=None, skip=None, save=True):
-        """Method to sync the instance with all the other related database models. All the fields which are not
-        explicit inputs to the create_from_data method depend on other models related to this instance and can
-        be synced by this method whenever the related models get changed.
-        This is a way around this database model being very poorly normalized (in favor of performance).
-        WARNING: must call .save on the child class instance to commit the changes into database!
+        """Method to sync the instance with all the other related database models.
+        All the fields which are not explicit inputs to the create_from_data method
+        depend on other models related to this instance and can be synced by this method
+        whenever the related models get changed.
+        This is a way around this database model being very poorly normalized
+        (in favor of performance).
+        WARNING: must call .save on the child class instance to commit the changes into
+        database!
         """
         if sync_only is None and skip is None:
             attributes_to_sync = list(self.sync_functions)
         elif sync_only is not None:
             attributes_to_sync = sync_only
         elif skip is not None:
-            attributes_to_sync = [attr for attr in self.sync_functions if attr not in skip]
+            attributes_to_sync = [
+                attr for attr in self.sync_functions if attr not in skip
+            ]
         else:
             raise ValueError('Only one attribute of "sync_only", "skip" may be passed!')
 

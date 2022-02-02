@@ -10,8 +10,14 @@ class _Base(TemplateView):
     extra_context = {
         'table_footer': True, 'initial_order': [Order(0), Order(1)],
         'columns': [
-            Column('Initial state', 'initial_state__state_html', 0, searchable=True, individual_search=True),
-            Column('Final state', 'final_state__state_html', 1, searchable=True, individual_search=True),
+            Column(
+                'Initial state', 'initial_state__state_html', 0, searchable=True,
+                individual_search=True
+            ),
+            Column(
+                'Final state', 'final_state__state_html', 1, searchable=True,
+                individual_search=True
+            ),
             Column('Δ<em>E</em> (eV)', 'delta_energy', 2),
             Column('Partial lifetime (s)', 'partial_lifetime', 3),
             Column('Branching ratio', 'branching_ratio', 4),
@@ -42,14 +48,21 @@ class _Base(TemplateView):
             self.state = State.objects.get(pk=self.kwargs['state_pk'])
             self.molecule = self.state.isotopologue.molecule
         else:
-            raise ValueError('If this happens, make sure that mol_slug or state_pk are passed to views from urls')
+            raise ValueError(
+                'If this happens, make sure that mol_slug or state_pk are passed to '
+                'views from urls'
+            )
 
 
 class TransitionToStateListView(_Base):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['content_heading'] = f'Transitions of {self.molecule.html} to the state {self.state.state_html}'
-        context['ajax_url'] = reverse('transition-to-state-list-ajax', args=[self.state.pk])
+        context['content_heading'] = (
+            f'Transitions of {self.molecule.html} to the state {self.state.state_html}'
+        )
+        context['ajax_url'] = reverse(
+            'transition-to-state-list-ajax', args=[self.state.pk]
+        )
         context['datatable_id'] = f'datatable-transition-to-state-{self.state.pk}'
         return context
 
@@ -57,8 +70,13 @@ class TransitionToStateListView(_Base):
 class TransitionFromStateListView(_Base):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['content_heading'] = f'Transitions of {self.molecule.html} from the state {self.state.state_html}'
-        context['ajax_url'] = reverse('transition-from-state-list-ajax', args=[self.state.pk])
+        context['content_heading'] = (
+            f'Transitions of {self.molecule.html} from the state '
+            f'{self.state.state_html}'
+        )
+        context['ajax_url'] = reverse(
+            'transition-from-state-list-ajax', args=[self.state.pk]
+        )
         context['datatable_id'] = f'datatable-transition-from-state-{self.state.pk}'
         return context
 
