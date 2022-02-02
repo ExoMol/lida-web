@@ -1,98 +1,121 @@
 """
-Needs to be imported (not run!) from the Django shell...
+Needs to be imported from the Django shell...
 """
-import sys
-from pathlib import Path
 import json
+from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-file_dir = Path(__file__).parent.resolve().absolute()
-res_dir = file_dir.parent.resolve().absolute()
-if not str(res_dir) is sys.path:
-    sys.path.append(str(res_dir))
+from app_site.models import Molecule, Isotopologue, State, Transition
 
 
-if __name__ != '__main__':
-    from app_site.models import Molecule, Isotopologue, State, Transition
+def populate_molecule(processed_data_dir):
+    """
+    Parameters
+    ----------
+    processed_data_dir : str or Path
+        Path towards the contents of the exomol2lida processing and post-processing
+        outputs for this molecule. The exomol2lida is a separate repo, containing
+        the code to generate inputs for the LIDA database.
+        The directory NEEDS to be named with the molecular formula, exactly as
+        logged by the exomol2lida.process_dataset.DatasetProcessor.
+    """
 
+    processed_data_dir = Path(processed_data_dir)
+    molecule_formula = processed_data_dir.name
+    with open(processed_data_dir / "meta_data.json") as fp:
+        dataset_metadata = json.load(fp)
 
-    def populate_molecule(processed_data_dir):
-        """
-        Parameters
-        ----------
-        processed_data_dir : str or Path
-            Path towards the contents of the exomol2lida processing and post-processing
-            outputs for this molecule. The exomol2lida is a separate repo, containing
-            the code to generate inputs for the LIDA database.
-            The directory NEEDS to be named with the molecular formula, exactly as
-            logged by the exomol2lida.process_dataset.DatasetProcessor.
-        """
+    try:
+        isotopologue = Isotopologue.get_from_formula_str(molecule_formula)
+        if isotopologue.state_set.count() or isotopologue.transition_set.count():
+            raise ValueError(
+                f"The isotopologue {isotopologue} already has some states or "
+                f"transitions attached. These need to be removed for the automated "
+                f"population script to run.")
 
-        processed_data_dir = Path(processed_data_dir)
-        molecule_formula = processed_data_dir.name
-        with open(processed_data_dir / "meta_data.json") as fp:
-            dataset_metadata = json.load(fp)
+    except Isotopologue.DoesNotExist:
+        # create molecule and isotopologue
+        molecule = Molecule.create_from_data(molecule_formula)
+        iso_formula = dataset_metadata["iso_formula"]
+        dataset_name = dataset_metadata["input"]["dataset_name"]
+        version = dataset_metadata["version"]
+        isotopologue = Isotopologue.create_from_data(
+            molecule=molecule,
+            iso_formula_str=iso_formula,
+            dataset_name=dataset_name,
+            version=version
+        )
 
-        try:
-            isotopologue = Isotopologue.get_from_formula_str(molecule_formula)
-            if isotopologue.state_set.count() or isotopologue.transition_set.count():
-                raise ValueError(
-                    f"The isotopologue {f} already has some states or transitions"
-                    f"attached. These need to be removed for the automated "
-                    f"population script to run.")
-
-        except Isotopologue.DoesNotExist:
-            # create molecule and isotopologue
-            molecule = Molecule.create_from_data(molecule_formula)
-            iso_formula = dataset_metadata["iso_formula"]
-            dataset_name = dataset_metadata["dataset_name"]
-            version = exomol_all.molecules[molecule_formula].isotopologues[iso_formula].version
-            isotopologue = Isotopologue.create_from_data(
-                molecule=molecule,
-                iso_formula_str=iso_formula,
-                inchi_key=inchi_key,
-                dataset_name=dataset_name,
-                version=version
+    if processed_data_dir.joinpath("states_electronic_raw.csv").is_file():
+        if not processed_data_dir.joinpath("states_electronic.csv").is_file():
+            raise ValueError(
+                f"ABORTING {molecule_formula} population: The data need to be "
+                f"post-processed by exomol2lida (states_electronic_raw.csv is "
+                f"not translated to states_electronic.csv)!"
             )
 
-        states_df, transitions_df = get_data(molecule_formula)
+    # load in all the states and transitions data as dataframes:
+    states_el, states_vib, vib_state_labels = None, None, None
+    el_state_str, vib_state_str, vib_state_labels = '', '', ''
+    if processed_data_dir.joinpath("states_electronic.csv").is_file():
+        states_el = pd.read_csv(
+            processed_data_dir / 'states_electronic.csv', header=0, index_col=0
+        )
+    if processed_data_dir.joinpath("states_vibrational.csv").is_file():
+        states_vib = pd.read_csv(
+            processed_data_dir / 'states_vibrational.csv', header=0, index_col=0
+        )
+    if states_vib is not None:
+        vib_state_labels = f"({', '.join(states_vib.columns)})"
 
-        if len(isotopologue.state_set.all()) == 0:
-            assert len(Transition.objects.filter(initial_state__isotopologue=isotopologue)) == 0, \
-                'WARNING! Inconsistency!'
-            states = {}  # django model instances
-            print(f'Adding: States and transitions for {molecule_formula}.')
-            for i in tqdm(states_df.index):
-                el_state, vib_state, lifetime, energy = \
-                    states_df.loc[i, ['state', 'vib_state', 'lifetime', 'energy']]
-                if el_state and not isotopologue.ground_el_state_str:
-                    isotopologue.set_ground_el_state_str(get_state_ground(states_df))
-                state = State.create_from_data(isotopologue, float(lifetime), float(energy),
-                                               el_state_str=el_state, vib_state_str=vib_state)
-                states[(el_state, vib_state)] = state
-            for i in tqdm(transitions_df.index):
-                key0_i, key1_i, key0_f, key1_f, partial_lifetime, branching_ratio = \
-                    transitions_df.loc[
-                        i, ['state_i', 'vib_state_i', 'state_f', 'vib_state_f', 'partial_lifetime', 'branching_ratio']
-                    ]
-                initial_state = states[(key0_i, key1_i)]
-                final_state = states[(key0_f, key1_f)]
-                Transition.create_from_data(initial_state, final_state, float(partial_lifetime), float(branching_ratio))
-            assert len(State.objects.filter(isotopologue=isotopologue)) == len(states_df)
-            assert len(Transition.objects.filter(initial_state__isotopologue=isotopologue)) == len(transitions_df)
-        elif len(isotopologue.state_set.all()) == len(states_df):
-            assert len(Transition.objects.filter(initial_state__isotopologue=isotopologue)) == \
-                   len(transitions_df), 'WARNING! Inconsistency!'
-            print(f'States and transitions for {molecule_formula} probably added already? Check it!')
-        else:
-            raise ValueError('States already partially populated?')
+    states_data = pd.read_csv(
+        processed_data_dir / 'states_data.csv', header=0, index_col=0
+    )
+    transitions_data = pd.read_csv(
+        processed_data_dir / 'transitions_data.csv', header=0, index_col=0
+    )
 
-if __name__ == '__main__':
-    with pd.option_context('display.max_rows', None):
-        for f in ['CO', 'SiH', 'SiH2', 'SiH4']:
-            s_df, t_df = get_data(f)
-            print(f'Ground state of {f}: {get_state_ground(s_df)}')
-            print(s_df)
+    if states_el is not None:
+        ground_el_state_str = "X"  # TODO: implement this!
+        isotopologue.set_ground_el_state_str(ground_el_state_str)
+
+    state_instances = {}  # django model instances
+    print(f'Adding: States and transitions for {molecule_formula}.')
+    for i in tqdm(states_data.index):
+        lifetime, energy = states_data.loc[i, ["tau", "E"]]
+        if states_el is not None:
+            el_state_str = states_el.loc[i, "State"]
+        if states_vib is not None:
+            vib_state = tuple(states_vib.loc[i])
+            if len(vib_state) == 1:
+                vib_state = vib_state[0]
+            vib_state_str = str(vib_state)
+        state = State.create_from_data(
+            isotopologue=isotopologue,
+            lifetime=float(lifetime),
+            energy=float(energy),
+            el_state_str=el_state_str,
+            vib_state_labels=vib_state_labels,
+            vib_state_str=vib_state_str
+        )
+        state_instances[i] = state
+
+    for j in tqdm(transitions_data.index):
+        i, f, tau_if = transitions_data.loc[j, ["i", "f", "tau_if"]]
+        Transition.create_from_data(
+            initial_state=state_instances[i],
+            final_state=state_instances[f],
+            partial_lifetime=float(tau_if),
+            branching_ratio=0.
+            # TODO: Do I want to keep the branching ratio or not?
+            #       If so, need to change exomol2lida so it extracts them.
+        )
+    assert (
+        State.objects.filter(isotopologue=isotopologue).count() == len(states_data)
+    )
+    assert (
+        Transition.objects.filter(initial_state__isotopologue=isotopologue).count()
+        == len(transitions_data)
+    )
