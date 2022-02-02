@@ -1,12 +1,13 @@
 # requires python>=3.8
 
-pyvalem==2.3.0
-django==3.2.9
-mysqlclient==2.1.0
-requests==2.26.0
-lxml==4.6.4
-pandas==1.3.4
-tqdm==4.62.3
+pyvalem>=2.5.0
+django<4
+mysqlclient
+requests
+lxml
+pandas
+tqdm
+black
 
 # editable installs from local file system:
 -e ./../django-datatables-serverside
