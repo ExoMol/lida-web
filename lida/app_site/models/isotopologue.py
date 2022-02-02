@@ -30,7 +30,6 @@ class Isotopologue(BaseModel):
     # ExoMol database, or checks if the recommended dataset_name has not changed.
     # iso_formula_str and iso_slug are compatible with PyValem package.
     iso_formula_str = models.CharField(max_length=32)
-    inchi_key = models.CharField(max_length=32)
     dataset_name = models.CharField(max_length=16)
     version = models.PositiveIntegerField()
 
@@ -90,7 +89,7 @@ class Isotopologue(BaseModel):
 
     @classmethod
     def create_from_data(
-            cls, molecule, iso_formula_str, inchi_key, dataset_name, version
+            cls, molecule, iso_formula_str, dataset_name, version
     ):
         # noinspection SpellCheckingInspection
         """A method for creation of new Isotopologue instances. It is highly
@@ -98,7 +97,6 @@ class Isotopologue(BaseModel):
         Example:
             molecule = Molecule.get_from_formula_str('H2O'),
             iso_formula_str = '(1H)2(16O)',
-            inchi_key = 'XLYOFNOQVPJJNP-OUBTZVSYSA-N',
             dataset_name = 'POKAZATEL',
             version = 20180501
         The arguments should be compatible with ExoMol database itself.
@@ -127,7 +125,7 @@ class Isotopologue(BaseModel):
             pass
 
         instance = cls(
-            molecule=molecule, iso_formula_str=iso_formula_str, inchi_key=inchi_key,
+            molecule=molecule, iso_formula_str=iso_formula_str,
             dataset_name=dataset_name, version=version
         )
         instance.sync()

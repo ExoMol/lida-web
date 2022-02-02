@@ -11,7 +11,7 @@ class TestTransition(TestCase):
             formula_str='CO2', name='carbon dioxide'
         )
         self.isotopologue = Isotopologue.create_from_data(
-            self.molecule, iso_formula_str='(12C)(16O)2', inchi_key='inchi_key',
+            self.molecule, iso_formula_str='(12C)(16O)2',
             dataset_name='name', version=1
         )
         self.state_high = State.create_from_data(
@@ -27,7 +27,7 @@ class TestTransition(TestCase):
             formula_str='CO', name='carbon monoxide'
         )
         self.diff_isotopologue = Isotopologue.create_from_data(
-            self.diff_molecule, iso_formula_str='(12C)(16O)', inchi_key='inchi_key',
+            self.diff_molecule, iso_formula_str='(12C)(16O)',
             dataset_name='name', version=42
         )
         self.diff_state_high = State.create_from_data(

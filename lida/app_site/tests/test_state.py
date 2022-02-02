@@ -66,7 +66,7 @@ class TestState(TestCase):
             formula_str='CO2+', name='carbon dioxide ion'
         )
         self.isotopologue = Isotopologue.create_from_data(
-            self.molecule, iso_formula_str='(12C)(16O)2+', inchi_key='inchi_key',
+            self.molecule, iso_formula_str='(12C)(16O)2+',
             dataset_name='name', version=1
         )
         self.isotopologue.set_ground_el_state_str('X(2PI)')
@@ -76,7 +76,7 @@ class TestState(TestCase):
             formula_str='CO', name='carbon monoxide'
         )
         self.diff_isotopologue = Isotopologue.create_from_data(
-            self.diff_molecule, iso_formula_str='(12C)(16O)', inchi_key='inchi_key',
+            self.diff_molecule, iso_formula_str='(12C)(16O)',
             dataset_name='name', version=1
         )
         self.diff_isotopologue.set_ground_el_state_str('X(2PI)')
@@ -274,7 +274,7 @@ class TestState(TestCase):
     def test_auto_set_vib_dim(self):
         molecule = Molecule.create_from_data(formula_str='CO2', name='carbon dioxide')
         isotopologue = Isotopologue.create_from_data(
-            molecule, iso_formula_str='(12C)(16O)2', inchi_key='inchi_key',
+            molecule, iso_formula_str='(12C)(16O)2',
             dataset_name='name', version=1,
         )
         self.assertEqual(0, isotopologue.state_set.count())
@@ -326,7 +326,7 @@ class TestState(TestCase):
     def test_ground_state(self):
         molecule = Molecule.create_from_data(formula_str='CO2', name='carbon dioxide')
         isotopologue = Isotopologue.create_from_data(
-            molecule, iso_formula_str='(12C)(16O)2', inchi_key='inchi_key',
+            molecule, iso_formula_str='(12C)(16O)2',
             dataset_name='name', version=1
         )
         State.create_from_data(isotopologue, 0, 0, vib_state_str='(0, 0, 0)',

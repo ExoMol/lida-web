@@ -16,7 +16,7 @@ class Molecule(BaseModel):
     # The following fields should be compatible with ExoMol database itself (and the
     # formula_str needs to be compatible with pyvalem.formula.Formula)
     formula_str = models.CharField(max_length=16)
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=64, default='')
 
     sync_functions = {
         'slug': lambda molecule: PVFormula(molecule.formula_str).slug,
@@ -43,7 +43,7 @@ class Molecule(BaseModel):
         return cls.objects.get(formula_str=formula_str)
 
     @classmethod
-    def create_from_data(cls, formula_str, name):
+    def create_from_data(cls, formula_str, name=''):
         """A method for creation of new Molecule instances. It is highly recommended to
         use this method to prevent multiple Molecule duplicates, inconsistent fields,
         etc.
