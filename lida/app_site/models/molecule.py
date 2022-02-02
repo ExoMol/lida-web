@@ -2,10 +2,10 @@ from django.db import models
 from pyvalem.formula import Formula as PVFormula
 
 from .exceptions import MoleculeError
-from .mixins import ModelMixin
+from .utils import BaseModel
 
 
-class Molecule(ModelMixin, models.Model):
+class Molecule(BaseModel):
     """A data model representing a molecule of a stateless species, without regards to
     different isotopologues.
     It is highly recommended to only use the available class methods to interact with

@@ -4,15 +4,14 @@ from django.db import models
 from pyvalem.states import VibrationalState
 
 from .exceptions import StateError
-from .mixins import ModelMixin
 from .isotopologue import Isotopologue
 from .utils import (
     validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str,
-    get_state_str, leading_zeros, strip_tags
+    get_state_str, leading_zeros, strip_tags, BaseModel
 )
 
 
-class State(ModelMixin, models.Model):
+class State(BaseModel):
     """A data model representing a stateful species. The stateless species is
     represented by the Isotopologue instance and its state is created by pyvalem.state
     compatible strings.

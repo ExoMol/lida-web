@@ -1,11 +1,11 @@
 from django.db import models
 
 from .exceptions import TransitionError
-from .mixins import ModelMixin
+from .utils import BaseModel
 from .state import State
 
 
-class Transition(ModelMixin, models.Model):
+class Transition(BaseModel):
     """A data model representing a transition between two states as a structure for
     partial lifetimes and branching ratios. Only a single Transition instance of any
     two initial and final states should exist at any given time in the database.

@@ -2,12 +2,11 @@ from django.db import models
 from pyvalem.formula import Formula as PVFormula
 
 from .exceptions import MoleculeError
-from .mixins import ModelMixin
 from .molecule import Molecule
-from .utils import canonicalise_and_parse_el_state_str, get_el_state_html
+from .utils import canonicalise_and_parse_el_state_str, get_el_state_html, BaseModel
 
 
-class Isotopologue(ModelMixin, models.Model):
+class Isotopologue(BaseModel):
     """A data model representing a particular isotopologue belonging to the
     corresponding Molecule instance.
     It is highly recommended to only use the available class methods to interact with
