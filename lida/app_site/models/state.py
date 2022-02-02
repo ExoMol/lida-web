@@ -128,11 +128,14 @@ class State(BaseModel):
 
     @classmethod
     def create_from_data(
-            cls, isotopologue, lifetime, energy, el_state_str='', vib_state_str=''
+            cls, isotopologue, lifetime, energy,
+            el_state_str='',
+            vib_state_labels='', vib_state_str=''
     ):
         """Example:
             isotopologue = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
-            el_state_str = '1SIGMA-'
+            el_state_str = '1SIGMA-',
+            vib_state_labels = '(v1, v2lin, v3)',
             vib_state_str = '(1, 0, 0)',
             lifetime = 0.42e-42,
             energy = 0.42
@@ -178,6 +181,11 @@ class State(BaseModel):
                 'At least one of electronic or vibrational states needs to be '
                 'specified!'
             )
+        if vib_state_str and not vib_state_labels:
+            raise StateError(
+                'If vibrational states are resolved, both vib_state_str and '
+                'vib_state_labels need to be passed!'
+            )
 
         # ensure the passed el_state_str is valid and get canonicalised version and
         # html:
@@ -208,11 +216,17 @@ class State(BaseModel):
             )
 
         # check if the vibrational state dimension matches the other states of the
-        # Isotopologue:
+        # Isotopologue, the same with the vibrational quanta labels:
         if vib_state_dim:
             if not isotopologue.state_set.count():
                 # first State being saved for the given isotopologue
-                isotopologue.set_vib_state_dim(vib_state_dim)
+                isotopologue.set_vib_quantum_labels(vib_state_labels)
+                if isotopologue.vib_state_dim != vib_state_dim:
+                    raise StateError(
+                        f'vib_state_labels and vib_state_str do not agree in '
+                        f'dimensions: {vib_state_labels}, {vib_state_str}, dimension '
+                        f'detected was {vib_state_dim}!'
+                    )
             elif isotopologue.vib_state_dim != vib_state_dim:
                 raise StateError(
                     f'Vibrational dimension {vib_state_dim} of the state {state_str} '
@@ -258,27 +272,6 @@ class State(BaseModel):
             s for s in [self.el_state_html, self.vib_state_html] if s
         )
         return f'{molecule_html} {states_html}'
-
-    @property
-    def vib_state_str_alt(self):
-        # vib_state_str_alt is a representation compatible with pyvalem
-        # VibrationalState (also canonicalised by repr)
-        # e.g. 'v2+3v4' for vib_state_str == '(0, 1, 0, 3)',
-        # or 'v=5' for vib_state_str == '5'
-        vib_state_quanta, _ = validate_and_parse_vib_state_str(self.vib_state_str)
-        if not len(vib_state_quanta):
-            raise StateError(f'Unrecognised vib_state_str saved under {self}!')
-        elif len(vib_state_quanta) == 1:
-            pyvalem_str = f'v={vib_state_quanta[0]}'
-        elif not any(vib_state_quanta):
-            return ''
-        else:
-            pyvalem_str = '+'.join(
-                f'{q}v{v}' for v, q in enumerate(vib_state_quanta, start=1) if q > 0
-            )
-
-        vib_state_str_alt = repr(VibrationalState(pyvalem_str))
-        return vib_state_str_alt
 
     @property
     def transition_set(self):

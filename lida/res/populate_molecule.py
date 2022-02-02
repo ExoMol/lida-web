@@ -13,9 +13,6 @@ res_dir = file_dir.parent.resolve().absolute()
 if not str(res_dir) is sys.path:
     sys.path.append(str(res_dir))
 
-from test_data.compile_test_data import get_data
-from exomol_all import exomol_all
-from tiantian_lifetime_data import molecules_info
 
 if __name__ != '__main__':
     from app_site.models import Molecule, Isotopologue, State, Transition

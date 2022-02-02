@@ -38,7 +38,12 @@ class Isotopologue(BaseModel):
     # the molecule and isotopologue (use dedicated methods defined to do this!):
     # ground state string needs to be set if el. states are assigned
     ground_el_state_str = models.CharField(max_length=64, default='')
-    # vibrational dimensionality set automatically when vib states are assigned
+    # labels for the vibrational quanta (in a tuple form if polyatomic),
+    # e.g. "v", "(v1, v2, v3)", "(n1, n2, n3, n4, n5, n6)", "(v1, v2lin, v3)"
+    vib_quantum_labels = models.CharField(max_length=64, default='')
+    # the html representation of the labels gets created automatically
+    vib_quantum_labels_html = models.CharField(max_length=128, default='')
+    # vibrational dimensionality set automatically when vib_quantum_labels are assigned
     vib_state_dim = models.PositiveSmallIntegerField(default=0)
 
     sync_functions = {
@@ -152,7 +157,7 @@ class Isotopologue(BaseModel):
         )
         self.save()
 
-    def set_vib_state_dim(self, vib_state_dim):
+    def _set_vib_state_dim(self, vib_state_dim):
         """Method to define the dimensionality of the vibrational states resolved for
         this Molecule and Isotopologue.
         This value needs not be saved manually, rather it is saved the first time any
@@ -174,20 +179,38 @@ class Isotopologue(BaseModel):
                 f'available number of degrees of freedom!'
             )
         self.vib_state_dim = vib_state_dim
+
+    def _set_vib_quantum_labels_html(self, vib_quanta):
+        # TODO: implement the logic here, parsing subscripts etc...
+        if len(vib_quanta) == 1:
+            self.vib_quantum_labels_html = vib_quanta[0]
+        else:
+            self.vib_quantum_labels_html = f'({", ".join(vib_quanta)})'
+
+    @staticmethod
+    def _split_vib_quantum_labels(vib_labels_str):
+        return [l.strip() for l in vib_labels_str.lstrip("(").rstrip(")").split(",")]
+
+    def set_vib_quantum_labels(self, vib_quantum_labels):
+        """Set metadata about what the vibrational quanta values refer to.
+
+        Also sets the vibrational state dimensionality as a side effect.
+
+        Parameters
+        ----------
+        vib_quantum_labels : str
+            either a simple "v", "n", if diatomic, or in the tuple form of
+            "(v1, v2, v3)", "(n1, n2, n3, n4)", "(v1, v2lin, v3)", if polyatomic
+        """
+        labels = self._split_vib_quantum_labels(vib_quantum_labels)
+        self.vib_quantum_labels = vib_quantum_labels
+        self._set_vib_state_dim(len(labels))
+        self._set_vib_quantum_labels_html(labels)
         self.save()
 
     @property
     def ground_el_state_html(self):
         return get_el_state_html(self.ground_el_state_str)
-
-    @property
-    def vib_quantum_numbers_html(self):
-        if not self.vib_state_dim:
-            return ''
-        elif self.vib_state_dim == 1:
-            return '<i>v</i>'
-        else:
-            return (f"({', '.join([f'<i>v</i><sub>{i + 1}</sub>' for i in range(self.vib_state_dim)])})")
 
     @property
     def resolves_el(self):

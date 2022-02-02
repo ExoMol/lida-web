@@ -15,11 +15,12 @@ class TestTransition(TestCase):
             dataset_name='name', version=1
         )
         self.state_high = State.create_from_data(
-            self.isotopologue, lifetime=0.1, energy=0.1, vib_state_str='(0, 0, 1)'
+            self.isotopologue, lifetime=0.1, energy=0.1, vib_state_str='(0, 0, 1)',
+            vib_state_labels="(v1, v2, v3)"
         )
         self.state_low = State.create_from_data(
             self.isotopologue, lifetime=float('inf'), energy=-0.1,
-            vib_state_str='(0, 0, 0)'
+            vib_state_str='(0, 0, 0)', vib_state_labels="(v1, v2, v3)"
         )
 
         self.diff_molecule = Molecule.create_from_data(
@@ -30,10 +31,12 @@ class TestTransition(TestCase):
             dataset_name='name', version=42
         )
         self.diff_state_high = State.create_from_data(
-            self.diff_isotopologue, lifetime=0.01, energy=0.2, vib_state_str='2'
+            self.diff_isotopologue, lifetime=0.01, energy=0.2, vib_state_str='2',
+            vib_state_labels="n"
         )
         self.diff_state_low = State.create_from_data(
-            self.diff_isotopologue, lifetime=0.1, energy=0.1, vib_state_str='1'
+            self.diff_isotopologue, lifetime=0.1, energy=0.1, vib_state_str='1',
+            vib_state_labels="n"
         )
 
     def test_str(self):
@@ -126,7 +129,8 @@ class TestTransition(TestCase):
             self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1
         )
         s = State.create_from_data(
-            self.isotopologue, lifetime=0.1, energy=42, vib_state_str='(9, 9, 9)'
+            self.isotopologue, lifetime=0.1, energy=42, vib_state_str='(9, 9, 9)',
+            vib_state_labels="(v1, v2, v3)"
         )
         t.initial_state = s
         t.sync()
@@ -140,7 +144,8 @@ class TestTransition(TestCase):
         self.assertEqual(self.isotopologue.molecule.formula_str, 'CO2')
 
         s1, s2, s3 = self.state_high, self.state_low, State.create_from_data(
-            self.isotopologue, lifetime=0.1, energy=42, vib_state_str='(9, 9, 9)'
+            self.isotopologue, lifetime=0.1, energy=42, vib_state_str='(9, 9, 9)',
+            vib_state_labels="(v1, v2, v3)"
         )
 
         _ = Transition.create_from_data(s1, s2, 0, 0)
@@ -197,13 +202,16 @@ class TestTransition(TestCase):
 
     def test_update_state(self):
         s1 = State.create_from_data(
-            self.isotopologue, lifetime=0.1, energy=1, vib_state_str='(1, 0, 0)'
+            self.isotopologue, lifetime=0.1, energy=1, vib_state_str='(1, 0, 0)',
+            vib_state_labels="(v1, v2, v3)"
         )
         s2 = State.create_from_data(
-            self.isotopologue, lifetime=0.1, energy=2, vib_state_str='(0, 2, 0)'
+            self.isotopologue, lifetime=0.1, energy=2, vib_state_str='(0, 2, 0)',
+            vib_state_labels="(v1, v2, v3)"
         )
         s3 = State.create_from_data(
-            self.isotopologue, lifetime=0.1, energy=3, vib_state_str='(0, 0, 3)'
+            self.isotopologue, lifetime=0.1, energy=3, vib_state_str='(0, 0, 3)',
+            vib_state_labels="(v1, v2, v3)"
         )
 
         tr1_pk = Transition.create_from_data(s1, s2, 1, 1).pk

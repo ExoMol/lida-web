@@ -111,13 +111,57 @@ class TestIsotopologue(TestCase):
     def test_set_vib_state_dim(self):
         i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
         self.assertEqual(0, i.vib_state_dim)
-        i.set_vib_state_dim(1)
+        i._set_vib_state_dim(1)
         self.assertEqual(1, i.vib_state_dim)
         with self.assertRaises(MoleculeError):
-            i.set_vib_state_dim(2)
+            i._set_vib_state_dim(2)
         with self.assertRaises(MoleculeError):
-            i.set_vib_state_dim(-1)
+            i._set_vib_state_dim(-1)
         self.assertEqual(1, i.vib_state_dim)
+
+    def test_split_vib_quantum_labels(self):
+        self.assertEqual(
+            Isotopologue._split_vib_quantum_labels("v"),
+            ["v"]
+        )
+        self.assertEqual(
+            Isotopologue._split_vib_quantum_labels("(v1, v2, v3)"),
+            ["v1", "v2", "v3"]
+        )
+        self.assertEqual(
+            Isotopologue._split_vib_quantum_labels("(n1, n2, n3, n4)"),
+            ["n1", "n2", "n3", "n4"]
+        )
+        self.assertEqual(
+            Isotopologue._split_vib_quantum_labels("(v1, v2lin, v3)"),
+            ["v1", "v2lin", "v3"]
+        )
+
+    def test_set_vib_quantum_labels_html(self):
+        i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
+        self.assertEqual('', i.vib_quantum_labels_html)
+        i._set_vib_quantum_labels_html(['v'])
+        self.assertEqual('v', i.vib_quantum_labels_html)
+        i._set_vib_quantum_labels_html(['v1', 'v2', 'v3'])
+        self.assertEqual('(v1, v2, v3)', i.vib_quantum_labels_html)
+
+    def test_set_vib_quantum_labels(self):
+        i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
+        self.assertEqual('', i.vib_quantum_labels)
+        self.assertEqual(0, i.vib_state_dim)
+        self.assertEqual('', i.vib_quantum_labels_html)
+        i.set_vib_quantum_labels("v")
+        self.assertEqual(i.vib_state_dim, 1)
+        self.assertEqual(i.vib_quantum_labels, "v"),
+        self.assertNotEqual(i.vib_quantum_labels_html, "")
+        i.molecule.number_atoms = 3
+        i.set_vib_quantum_labels("(v1, v2, v3)")
+        self.assertEqual(i.vib_state_dim, 3)
+        self.assertEqual(i.vib_quantum_labels, "(v1, v2, v3)"),
+        i.molecule.number_atoms = 4
+        i.set_vib_quantum_labels("(v1,v2lin,v3,n4)")
+        self.assertEqual(i.vib_state_dim, 4)
+        self.assertEqual(i.vib_quantum_labels, "(v1,v2lin,v3,n4)"),
 
     def test_sync(self):
         i = Isotopologue.create_from_data(
