@@ -7,7 +7,6 @@ requests
 lxml
 pandas
 tqdm
-black
 
 # editable installs from local file system:
 -e ./../django-datatables-serverside
