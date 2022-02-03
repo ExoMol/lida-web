@@ -1,7 +1,13 @@
 class Column:
     def __init__(
-            self, heading, model_field, index,
-            visible=True, searchable=False, individual_search=False, placeholder=None
+        self,
+        heading,
+        model_field,
+        index,
+        visible=True,
+        searchable=False,
+        individual_search=False,
+        placeholder=None,
     ):
         self.heading = heading
         self.model_field = model_field
@@ -13,6 +19,6 @@ class Column:
 
 
 class Order:
-    def __init__(self, index, direction='asc'):
+    def __init__(self, index, direction="asc"):
         self.index = index
         self.dir = direction

@@ -40,6 +40,7 @@ class Isotopologue(BaseModel):
     vib_state_dim : int
         Example: 0 if vibrational states are not resolved, 1 for diatomic, etc.
     """
+
     molecule = models.OneToOneField(Molecule, on_delete=models.CASCADE)
 
     # The following fields refer directly to the ExoMol database itself.
@@ -53,21 +54,21 @@ class Isotopologue(BaseModel):
     # The following fields describe the meta-data about the dataset/states assigned to
     # the molecule and isotopologue (use dedicated methods defined to do this!):
     # ground state string needs to be set if el. states are assigned
-    ground_el_state_str = models.CharField(max_length=64, default='', blank=True)
+    ground_el_state_str = models.CharField(max_length=64, default="", blank=True)
     # labels for the vibrational quanta (in a tuple form if polyatomic),
     # e.g. "v", "(v1, v2, v3)", "(n1, n2, n3, n4, n5, n6)", "(v1, v2lin, v3)"
-    vib_quantum_labels = models.CharField(max_length=64, default='')
+    vib_quantum_labels = models.CharField(max_length=64, default="")
     # the html representation of the labels gets created automatically
-    vib_quantum_labels_html = models.CharField(max_length=128, default='')
+    vib_quantum_labels_html = models.CharField(max_length=128, default="")
     # vibrational dimensionality set automatically when vib_quantum_labels are assigned
     vib_state_dim = models.PositiveSmallIntegerField(default=0)
 
     sync_functions = {
-        'iso_slug': lambda iso: PVFormula(iso.iso_formula_str).slug,
-        'html': lambda iso: PVFormula(iso.iso_formula_str).html,
-        'mass': lambda iso: PVFormula(iso.iso_formula_str).mass,
-        'number_states': lambda iso: iso.state_set.count(),
-        'number_transitions': lambda iso: iso.transition_set.count(),
+        "iso_slug": lambda iso: PVFormula(iso.iso_formula_str).slug,
+        "html": lambda iso: PVFormula(iso.iso_formula_str).html,
+        "mass": lambda iso: PVFormula(iso.iso_formula_str).mass,
+        "number_states": lambda iso: iso.state_set.count(),
+        "number_transitions": lambda iso: iso.transition_set.count(),
     }
 
     iso_slug = models.CharField(max_length=32)
@@ -98,16 +99,14 @@ class Isotopologue(BaseModel):
         """
         if cls.objects.filter(molecule__formula_str=formula_str).count() > 1:
             raise MoleculeError(
-                'Looks like we have switched to one-to-many relationship between '
-                'Molecule and Isotopologue. In that case, this method needs to be '
-                'revisited!'
+                "Looks like we have switched to one-to-many relationship between "
+                "Molecule and Isotopologue. In that case, this method needs to be "
+                "revisited!"
             )
         return cls.objects.get(molecule__formula_str=formula_str)
 
     @classmethod
-    def create_from_data(
-            cls, molecule, iso_formula_str, dataset_name, version
-    ):
+    def create_from_data(cls, molecule, iso_formula_str, dataset_name, version):
         # noinspection SpellCheckingInspection
         """A method for creation of new Isotopologue instances. It is highly
         recommended to use this method to prevent duplicates, inconsistent fields, etc.
@@ -124,26 +123,28 @@ class Isotopologue(BaseModel):
         # pyvalem)
         if repr(pyvalem_formula) != iso_formula_str:
             raise MoleculeError(
-                f'Non-canonicalised formula {iso_formula_str} passed, instead of '
-                f'{repr(pyvalem_formula)}'
+                f"Non-canonicalised formula {iso_formula_str} passed, instead of "
+                f"{repr(pyvalem_formula)}"
             )
         # Only a single instance per iso_formula_str should live in the database:
         try:
             cls.get_from_iso_formula_str(iso_formula_str)
-            raise MoleculeError(f'Isotopologue({iso_formula_str}) already exists!')
+            raise MoleculeError(f"Isotopologue({iso_formula_str}) already exists!")
         except cls.DoesNotExist:
             pass
         try:
             cls.get_from_formula_str(molecule.formula_str)
-            raise \
-                MoleculeError(
-                    f'Isotopologue(Molecule({molecule.formula_str})) already exists!')
+            raise MoleculeError(
+                f"Isotopologue(Molecule({molecule.formula_str})) already exists!"
+            )
         except cls.DoesNotExist:
             pass
 
         instance = cls(
-            molecule=molecule, iso_formula_str=iso_formula_str,
-            dataset_name=dataset_name, version=version
+            molecule=molecule,
+            iso_formula_str=iso_formula_str,
+            dataset_name=dataset_name,
+            version=version,
         )
         instance.sync()
         return instance
@@ -154,6 +155,7 @@ class Isotopologue(BaseModel):
         Isotopologue.
         """
         from .transition import Transition
+
         return Transition.objects.filter(initial_state__isotopologue=self)
 
     def set_ground_el_state_str(self, ground_el_state_str):
@@ -180,7 +182,7 @@ class Isotopologue(BaseModel):
         and all the subsequently attached states need to be of the same dimensionality!
         """
         if vib_state_dim < 0:
-            raise MoleculeError('Vibrational state dimensionality cannot be negative!')
+            raise MoleculeError("Vibrational state dimensionality cannot be negative!")
         n = self.molecule.number_atoms
         if n > 2:
             lim = 3 * n - 6
@@ -190,8 +192,8 @@ class Isotopologue(BaseModel):
             lim = 0
         if vib_state_dim > lim:
             raise MoleculeError(
-                f'Vibrational state dimensionality {vib_state_dim} higher than '
-                f'available number of degrees of freedom!'
+                f"Vibrational state dimensionality {vib_state_dim} higher than "
+                f"available number of degrees of freedom!"
             )
         return vib_state_dim
 

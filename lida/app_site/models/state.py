@@ -6,54 +6,58 @@ from pyvalem.states import VibrationalState
 from .exceptions import StateError
 from .isotopologue import Isotopologue
 from .utils import (
-    validate_and_parse_vib_state_str, canonicalise_and_parse_el_state_str,
-    get_state_str, leading_zeros, strip_tags, BaseModel
+    validate_and_parse_vib_state_str,
+    canonicalise_and_parse_el_state_str,
+    get_state_str,
+    leading_zeros,
+    strip_tags,
+    BaseModel,
 )
 
 
 class State(BaseModel):
     # noinspection PyUnresolvedReferences
     """A data model representing a stateful species. The stateless species is
-        represented by the Isotopologue instance and its state is created by
-        pyvalem.state compatible strings.
-        Only a single State instance belonging to the same Isotopologue and describing
-        the same physical state should exist at any given time in the database.
-        To ensure this, it is recommended to use available class methods for creating
-        new instances.
+    represented by the Isotopologue instance and its state is created by
+    pyvalem.state compatible strings.
+    Only a single State instance belonging to the same Isotopologue and describing
+    the same physical state should exist at any given time in the database.
+    To ensure this, it is recommended to use available class methods for creating
+    new instances.
 
-        Attributes
-        ----------
-        el_state_str : str
-            Example: 'X(1Σ+)'
-        el_state_html : str
-            Example: 'X<sup>1</sup>Σ<sup>+</sup>'
-        el_state_html_notags : str
-            Example: 'X1Σ+'
-            For filtering through the html fields.
-        vib_state_str : str
-            Example: '1'
-        vib_state_html : str
-            Example: '<i>v</i>=1'
-        vib_state_html_notags : str
-            Example: 'v=0'
-        state_sort_key : str
-            Example: '(00)'
+    Attributes
+    ----------
+    el_state_str : str
+        Example: 'X(1Σ+)'
+    el_state_html : str
+        Example: 'X<sup>1</sup>Σ<sup>+</sup>'
+    el_state_html_notags : str
+        Example: 'X1Σ+'
+        For filtering through the html fields.
+    vib_state_str : str
+        Example: '1'
+    vib_state_html : str
+        Example: '<i>v</i>=1'
+    vib_state_html_notags : str
+        Example: 'v=0'
+    state_sort_key : str
+        Example: '(00)'
 
-        Attribute Examples
-        ------------------
-                                | example 1                     | example 2
-        ------------------------|-------------------------------|-----------
-        el_state_str            | 'a(3Π)'                       | ''
-        el_state_html           | 'a<sup>3</sup>Π'              | ''
-        el_state_html_notags    | 'a3Π'                         | ''
-        vib_state_str           | '1'                           | '(0, 3, 0)'
-        vib_state_html          | '<i>v</i>=1'                  | '<b><i>v</i></b>=(0, 3, 0)'
-        vib_state_html_notags   | 'v=1'                         | 'v=(0, 3, 0)'
-        vib_state_sort_key      | '(01)'                        | '(00, 03, 00)'
-        state_html              | 'a<sup>3</sup>Π; <i>v</i>=1'  | '<b><i>v</i></b>=(0, 3, 0)'
-        state_html_notags       | 'a3Π; v=1'                    | 'v=(0, 3, 0)'
-        state_sort_key          | 'a(3Π); (01)'                 | '(00, 03, 00)'
-        """
+    Attribute Examples
+    ------------------
+                            | example 1                     | example 2
+    ------------------------|-------------------------------|-----------
+    el_state_str            | 'a(3Π)'                       | ''
+    el_state_html           | 'a<sup>3</sup>Π'              | ''
+    el_state_html_notags    | 'a3Π'                         | ''
+    vib_state_str           | '1'                           | '(0, 3, 0)'
+    vib_state_html          | '<i>v</i>=1'                  | '<b><i>v</i></b>=(0, 3, 0)'
+    vib_state_html_notags   | 'v=1'                         | 'v=(0, 3, 0)'
+    vib_state_sort_key      | '(01)'                        | '(00, 03, 00)'
+    state_html              | 'a<sup>3</sup>Π; <i>v</i>=1'  | '<b><i>v</i></b>=(0, 3, 0)'
+    state_html_notags       | 'a3Π; v=1'                    | 'v=(0, 3, 0)'
+    state_sort_key          | 'a(3Π); (01)'                 | '(00, 03, 00)'
+    """
     isotopologue = models.ForeignKey(Isotopologue, on_delete=models.CASCADE)
 
     # null fields denoting float('inf') which are not supported in MySQL
@@ -69,56 +73,47 @@ class State(BaseModel):
 
     # the sync functions dict needs to be ordered, as the html attribute sync function
     # expects el_state_html and vib_state_html already synced
-    sync_functions = OrderedDict([
-        (
-            'el_state_str',
-            lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[0]
-        ),
-        (
-            'el_state_html',
-            lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[1]
-        ),
-        (
-            'el_state_html_notags',
-            lambda state: strip_tags(state.el_state_html)
-        ),
-        (
-            'vib_state_html',
-            lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1]
-        ),
-        (
-            'vib_state_html_notags',
-            lambda state: strip_tags(state.vib_state_html)
-        ),
-        (
-            'vib_state_sort_key',
-            lambda state: leading_zeros(state.vib_state_str)
-        ),
-        (
-            'state_html',
-            lambda state: '; '.join(
-                s for s in [state.el_state_html, state.vib_state_html] if s
-            )
-        ),
-        (
-            'state_html_notags',
-            lambda state: strip_tags(state.state_html)
-        ),
-        (
-            'state_sort_key',
-            lambda state: '; '.join(
-                s for s in [state.el_state_str, state.vib_state_sort_key] if s
-            )
-        ),
-        (
-            'number_transitions_from',
-            lambda state: state.transition_from_set.count()
-        ),
-        (
-            'number_transitions_to',
-            lambda state: state.transition_to_set.count()
-        ),
-    ])
+    sync_functions = OrderedDict(
+        [
+            (
+                "el_state_str",
+                lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[
+                    0
+                ],
+            ),
+            (
+                "el_state_html",
+                lambda state: canonicalise_and_parse_el_state_str(state.el_state_str)[
+                    1
+                ],
+            ),
+            ("el_state_html_notags", lambda state: strip_tags(state.el_state_html)),
+            (
+                "vib_state_html",
+                lambda state: validate_and_parse_vib_state_str(state.vib_state_str)[1],
+            ),
+            ("vib_state_html_notags", lambda state: strip_tags(state.vib_state_html)),
+            ("vib_state_sort_key", lambda state: leading_zeros(state.vib_state_str)),
+            (
+                "state_html",
+                lambda state: "; ".join(
+                    s for s in [state.el_state_html, state.vib_state_html] if s
+                ),
+            ),
+            ("state_html_notags", lambda state: strip_tags(state.state_html)),
+            (
+                "state_sort_key",
+                lambda state: "; ".join(
+                    s for s in [state.el_state_str, state.vib_state_sort_key] if s
+                ),
+            ),
+            (
+                "number_transitions_from",
+                lambda state: state.transition_from_set.count(),
+            ),
+            ("number_transitions_to", lambda state: state.transition_to_set.count()),
+        ]
+    )
 
     # following fields are auto-added when using the dedicated create_from methods
     # (or the sync method).
@@ -140,7 +135,7 @@ class State(BaseModel):
         return get_state_str(self.isotopologue, self.el_state_str, self.vib_state_str)
 
     @classmethod
-    def get_from_data(cls, isotopologue, el_state_str='', vib_state_str=''):
+    def get_from_data(cls, isotopologue, el_state_str="", vib_state_str=""):
         """Example:
             isotopologue = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
             el_state_str = '1SIGMA-',
@@ -157,14 +152,18 @@ class State(BaseModel):
         return cls.objects.get(
             isotopologue=isotopologue,
             el_state_str=canonicalised_el_state_str,
-            vib_state_str=vib_state_str
+            vib_state_str=vib_state_str,
         )
 
     @classmethod
     def create_from_data(
-            cls, isotopologue, lifetime, energy,
-            el_state_str='',
-            vib_state_labels='', vib_state_str=''
+        cls,
+        isotopologue,
+        lifetime,
+        energy,
+        el_state_str="",
+        vib_state_labels="",
+        vib_state_str="",
     ):
         """Example:
             isotopologue = Isotopologue.get_from_iso_formula_str('(12C)(16O)'),
@@ -212,13 +211,13 @@ class State(BaseModel):
         """
         if not el_state_str and not vib_state_str:
             raise StateError(
-                'At least one of electronic or vibrational states needs to be '
-                'specified!'
+                "At least one of electronic or vibrational states needs to be "
+                "specified!"
             )
         if vib_state_str and not vib_state_labels:
             raise StateError(
-                'If vibrational states are resolved, both vib_state_str and '
-                'vib_state_labels need to be passed!'
+                "If vibrational states are resolved, both vib_state_str and "
+                "vib_state_labels need to be passed!"
             )
 
         # ensure the passed el_state_str is valid and get canonicalised version and
@@ -234,15 +233,16 @@ class State(BaseModel):
         # Only a single instance per isotopologue and both state_str should ever exist:
         try:
             cls.objects.get(
-                isotopologue=isotopologue, el_state_str=el_state_str,
-                vib_state_str=vib_state_str
+                isotopologue=isotopologue,
+                el_state_str=el_state_str,
+                vib_state_str=vib_state_str,
             )
             raise StateError(f'State "{state_str}" already exists!')
         except cls.DoesNotExist:
             pass
 
         # deal with the infinite lifetimes, swap for None
-        if lifetime in {float('inf'), None}:
+        if lifetime in {float("inf"), None}:
             lifetime = None
         elif lifetime < 0:
             raise StateError(
@@ -257,45 +257,48 @@ class State(BaseModel):
                 isotopologue.set_vib_quantum_labels(vib_state_labels)
                 if isotopologue.vib_state_dim != vib_state_dim:
                     raise StateError(
-                        f'vib_state_labels and vib_state_str do not agree in '
-                        f'dimensions: {vib_state_labels}, {vib_state_str}, dimension '
-                        f'detected was {vib_state_dim}!'
+                        f"vib_state_labels and vib_state_str do not agree in "
+                        f"dimensions: {vib_state_labels}, {vib_state_str}, dimension "
+                        f"detected was {vib_state_dim}!"
                     )
             elif isotopologue.vib_state_dim != vib_state_dim:
                 raise StateError(
-                    f'Vibrational dimension {vib_state_dim} of the state {state_str} '
-                    f'does not match the vibrational dimension of the isotopologue '
-                    f'{isotopologue}: {isotopologue.vib_state_dim}!'
+                    f"Vibrational dimension {vib_state_dim} of the state {state_str} "
+                    f"does not match the vibrational dimension of the isotopologue "
+                    f"{isotopologue}: {isotopologue.vib_state_dim}!"
                 )
         elif isotopologue.vib_state_dim > 0:
             raise StateError(
-                f'Isotopologue {isotopologue} expects vibrational dimension '
-                f'{isotopologue.vib_state_dim}, but State {state_str} does not resolve '
-                f'vibrational states!'
+                f"Isotopologue {isotopologue} expects vibrational dimension "
+                f"{isotopologue.vib_state_dim}, but State {state_str} does not resolve "
+                f"vibrational states!"
             )
         # the same check with the electronic state, if resolved, the Isotopologue needs
         # to know what a ground state is
         if el_state_str and not isotopologue.ground_el_state_str:
             raise StateError(
                 f'Before saving State "{state_str}", ground_el_state_str needs to be '
-                f'saved for Isotopologue {isotopologue}! Use '
-                f'Isotopologue.set_ground_el_state_str() once before saving any states '
-                f'resolving electronic excitation.'
+                f"saved for Isotopologue {isotopologue}! Use "
+                f"Isotopologue.set_ground_el_state_str() once before saving any states "
+                f"resolving electronic excitation."
             )
         elif not el_state_str and isotopologue.ground_el_state_str:
             raise StateError(
-                f'Isotopologue {isotopologue} has ground state defined and no '
-                f'electronic state is passed to the State {state_str}! '
-                f'This is not allowed for consistency, all the states belonging to one '
-                f'Isotopologue must define either vib_state_str, or el_state_str, or '
-                f'both. '
-                f'This is reflected by Isotopologue instance by having '
-                f'vib_state_dim > 0 or non-empty ground_el_state_str.'
+                f"Isotopologue {isotopologue} has ground state defined and no "
+                f"electronic state is passed to the State {state_str}! "
+                f"This is not allowed for consistency, all the states belonging to one "
+                f"Isotopologue must define either vib_state_str, or el_state_str, or "
+                f"both. "
+                f"This is reflected by Isotopologue instance by having "
+                f"vib_state_dim > 0 or non-empty ground_el_state_str."
             )
 
         instance = cls(
-            isotopologue=isotopologue, lifetime=lifetime, energy=energy,
-            el_state_str=el_state_str, vib_state_str=vib_state_str
+            isotopologue=isotopologue,
+            lifetime=lifetime,
+            energy=energy,
+            el_state_str=el_state_str,
+            vib_state_str=vib_state_str,
         )
         instance.sync()
         return instance
@@ -305,20 +308,21 @@ class State(BaseModel):
         states_html = "; ".join(
             s for s in [self.el_state_html, self.vib_state_html] if s
         )
-        return f'{molecule_html} {states_html}'
+        return f"{molecule_html} {states_html}"
 
     @property
     def transition_set(self):
         from .transition import Transition
+
         return Transition.objects.filter(
             models.Q(initial_state=self) | models.Q(final_state=self)
         )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.isotopologue.sync(sync_only=['number_states'])
+        self.isotopologue.sync(sync_only=["number_states"])
         for transition in self.transition_set.all():
-            transition.sync(sync_only=['delta_energy'], save=False)
+            transition.sync(sync_only=["delta_energy"], save=False)
             # now I need to save the delta_energy without triggering Transition.save()
             # to avoid infinite recursion:
             transition.__class__.objects.filter(pk=transition.pk).update(
@@ -327,4 +331,4 @@ class State(BaseModel):
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.isotopologue.sync(sync_only=['number_states'])
+        self.isotopologue.sync(sync_only=["number_states"])

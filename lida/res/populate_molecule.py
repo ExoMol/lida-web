@@ -33,7 +33,8 @@ def populate_molecule(processed_data_dir):
             raise ValueError(
                 f"The isotopologue {isotopologue} already has some states or "
                 f"transitions attached. These need to be removed for the automated "
-                f"population script to run.")
+                f"population script to run."
+            )
 
     except Isotopologue.DoesNotExist:
         # create molecule and isotopologue
@@ -45,7 +46,7 @@ def populate_molecule(processed_data_dir):
             molecule=molecule,
             iso_formula_str=iso_formula,
             dataset_name=dataset_name,
-            version=version
+            version=version,
         )
 
     if processed_data_dir.joinpath("states_electronic_raw.csv").is_file():
@@ -58,23 +59,23 @@ def populate_molecule(processed_data_dir):
 
     # load in all the states and transitions data as dataframes:
     states_el, states_vib, vib_state_labels = None, None, None
-    el_state_str, vib_state_str, vib_state_labels = '', '', ''
+    el_state_str, vib_state_str, vib_state_labels = "", "", ""
     if processed_data_dir.joinpath("states_electronic.csv").is_file():
         states_el = pd.read_csv(
-            processed_data_dir / 'states_electronic.csv', header=0, index_col=0
+            processed_data_dir / "states_electronic.csv", header=0, index_col=0
         )
     if processed_data_dir.joinpath("states_vibrational.csv").is_file():
         states_vib = pd.read_csv(
-            processed_data_dir / 'states_vibrational.csv', header=0, index_col=0
+            processed_data_dir / "states_vibrational.csv", header=0, index_col=0
         )
     if states_vib is not None:
         vib_state_labels = f"({', '.join(states_vib.columns)})"
 
     states_data = pd.read_csv(
-        processed_data_dir / 'states_data.csv', header=0, index_col=0
+        processed_data_dir / "states_data.csv", header=0, index_col=0
     )
     transitions_data = pd.read_csv(
-        processed_data_dir / 'transitions_data.csv', header=0
+        processed_data_dir / "transitions_data.csv", header=0
     )
 
     if states_el is not None:
@@ -85,7 +86,7 @@ def populate_molecule(processed_data_dir):
         isotopologue.set_ground_el_state_str(ground_el_state_str)
 
     state_instances = {}  # django model instances
-    print(f'Adding: States and transitions for {molecule_formula}.')
+    print(f"Adding: States and transitions for {molecule_formula}.")
     for i in tqdm(states_data.index):
         lifetime, energy = states_data.loc[i, ["tau", "E"]]
         if states_el is not None:
@@ -101,7 +102,7 @@ def populate_molecule(processed_data_dir):
             energy=float(energy),
             el_state_str=el_state_str,
             vib_state_labels=vib_state_labels,
-            vib_state_str=vib_state_str
+            vib_state_str=vib_state_str,
         )
         state_instances[i] = state
 
@@ -111,14 +112,11 @@ def populate_molecule(processed_data_dir):
             initial_state=state_instances[i],
             final_state=state_instances[f],
             partial_lifetime=float(tau_if),
-            branching_ratio=0.
+            branching_ratio=0.0
             # TODO: Do I want to keep the branching ratio or not?
             #       If so, need to change exomol2lida so it extracts them.
         )
-    assert (
-        State.objects.filter(isotopologue=isotopologue).count() == len(states_data)
-    )
-    assert (
-        Transition.objects.filter(initial_state__isotopologue=isotopologue).count()
-        == len(transitions_data)
-    )
+    assert State.objects.filter(isotopologue=isotopologue).count() == len(states_data)
+    assert Transition.objects.filter(
+        initial_state__isotopologue=isotopologue
+    ).count() == len(transitions_data)

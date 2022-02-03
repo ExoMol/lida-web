@@ -6,8 +6,7 @@ from .exceptions import StateError
 
 
 class BaseModel(models.Model):
-    """Abstract base class for all the models implemented in the models sub-package.
-    """
+    """Abstract base class for all the models implemented in the models sub-package."""
 
     id = models.AutoField(primary_key=True)
     time_added = models.DateTimeField(auto_now_add=True)
@@ -21,7 +20,7 @@ class BaseModel(models.Model):
 
     def str_to_repr(self, text):
         # noinspection PyUnresolvedReferences
-        return f'{self.id}:{self._meta.object_name}({text})'
+        return f"{self.id}:{self._meta.object_name}({text})"
 
     def __repr__(self):
         return self.str_to_repr(str(self))
@@ -58,12 +57,12 @@ class BaseModel(models.Model):
             val_orig = getattr(self, attr_name)
             if val_synced != val_orig:
                 setattr(self, attr_name, val_synced)
-                update_log.append(f'updated {attr_name}: {val_orig} -> {val_synced}')
+                update_log.append(f"updated {attr_name}: {val_orig} -> {val_synced}")
 
         if verbose and len(update_log):
             object_repr = repr(self)
             entry = update_log.pop(0)
-            print(f'{object_repr}: {entry}')
+            print(f"{object_repr}: {entry}")
             for entry in update_log:
                 print(f'{len(object_repr) * " "}  {entry}')
 
@@ -77,20 +76,22 @@ def validate_and_parse_vib_state_str(vib_state_str):
     Raises StateError whenever the passed vib_state_str is not in exactly the correct
     format.
     """
-    if vib_state_str == '':
-        return [], ''
+    if vib_state_str == "":
+        return [], ""
 
     invalid_state_str_msg = (
         f'Vibrational string "{vib_state_str}" is not in the form of '
         f'"(v_1, v_2, ..., v_n)" or "v"!'
     )
 
-    if vib_state_str[0] == '(' and vib_state_str[-1] == ')':
-        quanta_str = vib_state_str.lstrip('(').rstrip(')').split(', ')
+    if vib_state_str[0] == "(" and vib_state_str[-1] == ")":
+        quanta_str = vib_state_str.lstrip("(").rstrip(")").split(", ")
         if len(quanta_str) < 2:
             raise StateError(invalid_state_str_msg)
-    elif vib_state_str[0] != '(' and vib_state_str[-1] != ')':
-        quanta_str = [vib_state_str, ]
+    elif vib_state_str[0] != "(" and vib_state_str[-1] != ")":
+        quanta_str = [
+            vib_state_str,
+        ]
     else:
         raise StateError(invalid_state_str_msg)
 
@@ -108,9 +109,9 @@ def validate_and_parse_vib_state_str(vib_state_str):
 
     if len(quanta_int) == 1:
         q = quanta_int[0]
-        vib_state_html = f'<i>v</i>={q}'
+        vib_state_html = f"<i>v</i>={q}"
     else:
-        vib_state_html = f'<b><i>v</i></b>={vib_state_str}'
+        vib_state_html = f"<b><i>v</i></b>={vib_state_str}"
 
     return quanta_int, vib_state_html
 
@@ -121,8 +122,8 @@ def canonicalise_and_parse_el_state_str(el_state_str):
         canonicalise_el_state_str('1SIGMA-')  = '1Σ-',
     """
     el_state_str = el_state_str.strip()
-    if el_state_str == '':
-        return '', ''
+    if el_state_str == "":
+        return "", ""
     canonicalised_el_state_str = repr(MolecularTermSymbol(el_state_str))
     el_state_html = get_el_state_html(el_state_str)
     return canonicalised_el_state_str, el_state_html
@@ -130,25 +131,25 @@ def canonicalise_and_parse_el_state_str(el_state_str):
 
 def get_el_state_html(el_state_str):
     el_state_str = el_state_str.strip()
-    if el_state_str == '':
-        return ''
+    if el_state_str == "":
+        return ""
     return MolecularTermSymbol(el_state_str).html
 
 
 def get_state_str(isotopologue, el_state_str, vib_state_str):
     molecule_str = str(isotopologue.molecule)
-    state_str = ';'.join(
+    state_str = ";".join(
         s for s in [el_state_str, f'v={vib_state_str.replace(" ", "")}'] if s
     )
-    return f'{molecule_str} {state_str}'
+    return f"{molecule_str} {state_str}"
 
 
 def leading_zeros(vib_state_str):
     quanta_int, _ = validate_and_parse_vib_state_str(vib_state_str)
-    return '(' + ', '.join(f'{q:02d}' for q in quanta_int) + ')'
+    return "(" + ", ".join(f"{q:02d}" for q in quanta_int) + ")"
 
 
 def strip_tags(html_str):
-    if html_str == '':
-        return ''
+    if html_str == "":
+        return ""
     return html.fromstring(html_str).text_content()
