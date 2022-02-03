@@ -32,8 +32,8 @@
             <div class="col-5">{% if molecule.isotopologue.resolves_vib %}Yes{% else %}No{% endif %}</div>
           </div>
           <div class="row{% if not molecule.isotopologue.resolves_vib %} hidden-element{% endif %}">
-            <div class="col-7">Vibrational quantum numbers:</div>
-            <div class="col-5">{{ molecule.isotopologue.vib_quantum_numbers_html }}</div>
+            <div class="col-7">Vibrational quantum labels:</div>
+            <div class="col-5">{{ molecule.isotopologue.vib_quantum_labels_html }}</div>
           </div>
           <div class="row">
             <div class="col-7">Mass (amu):</div>

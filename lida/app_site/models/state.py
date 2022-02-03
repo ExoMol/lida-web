@@ -12,14 +12,48 @@ from .utils import (
 
 
 class State(BaseModel):
+    # noinspection PyUnresolvedReferences
     """A data model representing a stateful species. The stateless species is
-    represented by the Isotopologue instance and its state is created by pyvalem.state
-    compatible strings.
-    Only a single State instance belonging to the same Isotopologue and describing the
-    same physical state should exist at any given time in the database.
-    To ensure this, it is recommended to use available class methods for creating
-    new instances.
-    """
+        represented by the Isotopologue instance and its state is created by
+        pyvalem.state compatible strings.
+        Only a single State instance belonging to the same Isotopologue and describing
+        the same physical state should exist at any given time in the database.
+        To ensure this, it is recommended to use available class methods for creating
+        new instances.
+
+        Attributes
+        ----------
+        el_state_str : str
+            Example: 'X(1Σ+)'
+        el_state_html : str
+            Example: 'X<sup>1</sup>Σ<sup>+</sup>'
+        el_state_html_notags : str
+            Example: 'X1Σ+'
+            For filtering through the html fields.
+        vib_state_str : str
+            Example: '1'
+        vib_state_html : str
+            Example: '<i>v</i>=1'
+        vib_state_html_notags : str
+            Example: 'v=0'
+        state_sort_key : str
+            Example: '(00)'
+
+        Attribute Examples
+        ------------------
+                                | example 1                     | example 2
+        ------------------------|-------------------------------|-----------
+        el_state_str            | 'a(3Π)'                       | ''
+        el_state_html           | 'a<sup>3</sup>Π'              | ''
+        el_state_html_notags    | 'a3Π'                         | ''
+        vib_state_str           | '1'                           | '(0, 3, 0)'
+        vib_state_html          | '<i>v</i>=1'                  | '<b><i>v</i></b>=(0, 3, 0)'
+        vib_state_html_notags   | 'v=1'                         | 'v=(0, 3, 0)'
+        vib_state_sort_key      | '(01)'                        | '(00, 03, 00)'
+        state_html              | 'a<sup>3</sup>Π; <i>v</i>=1'  | '<b><i>v</i></b>=(0, 3, 0)'
+        state_html_notags       | 'a3Π; v=1'                    | 'v=(0, 3, 0)'
+        state_sort_key          | 'a(3Π); (01)'                 | '(00, 03, 00)'
+        """
     isotopologue = models.ForeignKey(Isotopologue, on_delete=models.CASCADE)
 
     # null fields denoting float('inf') which are not supported in MySQL

@@ -22,13 +22,19 @@ class StateListView(TemplateView):
         context['datatable_id'] = f'datatable-state-{mol.slug}'
         context['columns'] = [
             Column(
-                'Electronic state', 'el_state_html', 0,
-                visible=mol.isotopologue.resolves_el, searchable=True,
+                'Electronic state',
+                'el_state_html',
+                0,
+                visible=mol.isotopologue.resolves_el,
+                searchable=True,
                 individual_search=True
             ),
             Column(
-                'Vibrational state', 'vib_state_html', 1,
-                visible=mol.isotopologue.resolves_vib, searchable=True,
+                f'Vibrational state: {mol.isotopologue.vib_quantum_labels_html}',
+                'vib_state_str',
+                1,
+                visible=mol.isotopologue.resolves_vib,
+                searchable=True,
                 individual_search=True
             ),
             Column('Energy (eV)', 'energy', 2),

@@ -108,16 +108,13 @@ class TestIsotopologue(TestCase):
         i.set_ground_el_state_str('3PI')
         self.assertEqual(i.ground_el_state_str, '3Π')
 
-    def test_set_vib_state_dim(self):
+    def test_validate_vib_state_dim(self):
         i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
-        self.assertEqual(0, i.vib_state_dim)
-        i._set_vib_state_dim(1)
-        self.assertEqual(1, i.vib_state_dim)
+        self.assertEqual(i._validate_vib_state_dim(1), 1)
         with self.assertRaises(MoleculeError):
-            i._set_vib_state_dim(2)
+            i._validate_vib_state_dim(2)
         with self.assertRaises(MoleculeError):
-            i._set_vib_state_dim(-1)
-        self.assertEqual(1, i.vib_state_dim)
+            i._validate_vib_state_dim(-1)
 
     def test_split_vib_quantum_labels(self):
         self.assertEqual(
@@ -137,13 +134,18 @@ class TestIsotopologue(TestCase):
             ["v1", "v2lin", "v3"]
         )
 
-    def test_set_vib_quantum_labels_html(self):
+    def test_get_vib_quantum_labels_html(self):
         i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)
         self.assertEqual('', i.vib_quantum_labels_html)
-        i._set_vib_quantum_labels_html(['v'])
-        self.assertEqual('v', i.vib_quantum_labels_html)
-        i._set_vib_quantum_labels_html(['v1', 'v2', 'v3'])
-        self.assertEqual('(v1, v2, v3)', i.vib_quantum_labels_html)
+        self.assertEqual(i._get_vib_quantum_labels_html(['v']), 'v')
+        self.assertEqual(i._get_vib_quantum_labels_html(['v2']), "v<sub>2</sub>")
+        self.assertEqual(
+            i._get_vib_quantum_labels_html(['v1', 'v2', 'n3']),
+            "(v<sub>1</sub>, v<sub>2</sub>, n<sub>3</sub>)"
+        )
+        self.assertEqual(i._get_vib_quantum_labels_html(
+            ['v1', 'v2lin']), "(v<sub>1</sub>, v<sub>2</sub><sup>lin</sup>)"
+        )
 
     def test_set_vib_quantum_labels(self):
         i = Isotopologue.objects.create(molecule=self.molecule, **self.test_attributes)

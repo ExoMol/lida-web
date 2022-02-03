@@ -74,11 +74,14 @@ def populate_molecule(processed_data_dir):
         processed_data_dir / 'states_data.csv', header=0, index_col=0
     )
     transitions_data = pd.read_csv(
-        processed_data_dir / 'transitions_data.csv', header=0, index_col=0
+        processed_data_dir / 'transitions_data.csv', header=0
     )
 
     if states_el is not None:
-        ground_el_state_str = "X"  # TODO: implement this!
+        # electronic states are resolved, need to set the state_string for the
+        # ground state - just take the state with the lowest energy.
+        i = states_data.sort_values(by="E").index[0]
+        ground_el_state_str = states_el.loc[i, "State"]
         isotopologue.set_ground_el_state_str(ground_el_state_str)
 
     state_instances = {}  # django model instances

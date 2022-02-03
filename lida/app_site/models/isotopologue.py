@@ -1,3 +1,5 @@
+import re
+
 from django.db import models
 from pyvalem.formula import Formula as PVFormula
 
@@ -22,6 +24,21 @@ class Isotopologue(BaseModel):
     the database, and this should be the ExoMol-recommended dataset. However,
     multiple datasets per Isotopologue might be implemented in the future,
     in that case, the get_from_* and create_from_* methods need to be re-implemented.
+
+    Attributes
+    ----------
+    ground_el_state_str : str
+        This field needs to be populated for the datasets which resolve electronic
+        states. This needs to be populated self.set_ground_el_state_str method prior
+        to instantiating any State objects belonging to this isotopologue instance.
+        Normally, this will be the state_str belonging to the lowest-energy state
+        in this dataset.
+    vib_quantum_labels : str
+        Example: "(v)", "(n1, n2, n3)", "(v1, v2lin, v3)", etc.
+    vib_quantum_labels_html : str
+        Example: "v", "(n<sub>1</sub>, n<sub>1</sub>, n<sub>1</sub>)", etc.
+    vib_state_dim : int
+        Example: 0 if vibrational states are not resolved, 1 for diatomic, etc.
     """
     molecule = models.OneToOneField(Molecule, on_delete=models.CASCADE)
 
@@ -36,7 +53,7 @@ class Isotopologue(BaseModel):
     # The following fields describe the meta-data about the dataset/states assigned to
     # the molecule and isotopologue (use dedicated methods defined to do this!):
     # ground state string needs to be set if el. states are assigned
-    ground_el_state_str = models.CharField(max_length=64, default='')
+    ground_el_state_str = models.CharField(max_length=64, default='', blank=True)
     # labels for the vibrational quanta (in a tuple form if polyatomic),
     # e.g. "v", "(v1, v2, v3)", "(n1, n2, n3, n4, n5, n6)", "(v1, v2lin, v3)"
     vib_quantum_labels = models.CharField(max_length=64, default='')
@@ -155,7 +172,7 @@ class Isotopologue(BaseModel):
         )
         self.save()
 
-    def _set_vib_state_dim(self, vib_state_dim):
+    def _validate_vib_state_dim(self, vib_state_dim):
         """Method to define the dimensionality of the vibrational states resolved for
         this Molecule and Isotopologue.
         This value needs not be saved manually, rather it is saved the first time any
@@ -176,14 +193,34 @@ class Isotopologue(BaseModel):
                 f'Vibrational state dimensionality {vib_state_dim} higher than '
                 f'available number of degrees of freedom!'
             )
-        self.vib_state_dim = vib_state_dim
+        return vib_state_dim
 
-    def _set_vib_quantum_labels_html(self, vib_quanta):
-        # TODO: implement the logic here, parsing subscripts etc...
-        if len(vib_quanta) == 1:
-            self.vib_quantum_labels_html = vib_quanta[0]
+    @staticmethod
+    def _get_vib_quantum_labels_html(vib_quanta_labels):
+        """
+        Parameters
+        ----------
+        vib_quanta_labels : list[str]
+        """
+        pattern = re.compile(r"^([vn])(\d+)?(lin)?$")
+        html_labels = []
+        for label in vib_quanta_labels:
+            match = pattern.match(label)
+            if match is None:
+                html_labels.append(label)
+            else:
+                letter, index, lin = match.group(1), match.group(2), match.group(3)
+                label_html = letter
+                if index is not None:
+                    label_html = f"{label_html}<sub>{index}</sub>"
+                if lin:
+                    label_html = f"{label_html}<sup>{lin}</sup>"
+                html_labels.append(label_html)
+        if len(html_labels) == 1:
+            vib_quantum_labels_html = html_labels[0]
         else:
-            self.vib_quantum_labels_html = f'({", ".join(vib_quanta)})'
+            vib_quantum_labels_html = f'({", ".join(html_labels)})'
+        return vib_quantum_labels_html
 
     @staticmethod
     def _split_vib_quantum_labels(vib_labels_str):
@@ -202,8 +239,8 @@ class Isotopologue(BaseModel):
         """
         labels = self._split_vib_quantum_labels(vib_quantum_labels)
         self.vib_quantum_labels = vib_quantum_labels
-        self._set_vib_state_dim(len(labels))
-        self._set_vib_quantum_labels_html(labels)
+        self.vib_state_dim = self._validate_vib_state_dim(len(labels))
+        self.vib_quantum_labels_html = self._get_vib_quantum_labels_html(labels)
         self.save()
 
     @property

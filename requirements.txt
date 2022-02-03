@@ -1,6 +1,6 @@
 # requires python>=3.8
 
-pyvalem>=2.5.1
+pyvalem>=2.5.2
 django<4
 mysqlclient
 requests

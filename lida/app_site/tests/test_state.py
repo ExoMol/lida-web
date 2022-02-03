@@ -105,7 +105,7 @@ class TestState(TestCase):
 
     def test_no_states(self):
         self.assertEqual(0, len(State.objects.all()))
-        self.isotopologue._set_vib_state_dim(0)
+        self.isotopologue.vib_state_dim = 0
         State.create_from_data(self.isotopologue, 0.42, 0.42, el_state_str='1SIGMA-')
         self.isotopologue.set_vib_quantum_labels("(v1, v2, v3)")
         State.create_from_data(
@@ -185,7 +185,8 @@ class TestState(TestCase):
 
     def test_create_from_data_canonicalization_duplicate(self):
         self.assertEqual(0, len(State.objects.all()))
-        self.isotopologue._set_vib_state_dim(0)
+        self.isotopologue.vib_state_dim = 0
+        self.isotopologue.save()
         State.create_from_data(
             self.isotopologue, el_state_str='1SIGMA-', lifetime=0.42, energy=-0.42
         )
@@ -198,7 +199,7 @@ class TestState(TestCase):
 
     def test_get_from_data(self):
         self.assertEqual(0, len(State.objects.all()))
-        self.isotopologue._set_vib_state_dim(0)
+        self.isotopologue.vib_state_dim = 0
         s = State.create_from_data(
             self.isotopologue, el_state_str='1SIGMA-', lifetime=0.42, energy=-0.42
         )
