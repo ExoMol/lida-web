@@ -111,10 +111,7 @@ def populate_molecule(processed_data_dir):
         Transition.create_from_data(
             initial_state=state_instances[i],
             final_state=state_instances[f],
-            partial_lifetime=float(tau_if),
-            branching_ratio=0.0
-            # TODO: Do I want to keep the branching ratio or not?
-            #       If so, need to change exomol2lida so it extracts them.
+            partial_lifetime=float(tau_if)
         )
     assert State.objects.filter(isotopologue=isotopologue).count() == len(states_data)
     assert Transition.objects.filter(

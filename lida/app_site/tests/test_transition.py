@@ -57,7 +57,6 @@ class TestTransition(TestCase):
             initial_state=self.state_high,
             final_state=self.state_low,
             partial_lifetime=0.42,
-            branching_ratio=0.42,
             delta_energy=0.42,
         )
         self.assertEqual(str(tr), "CO2 v=(0,0,1) → CO2 v=(0,0,0)")
@@ -68,7 +67,6 @@ class TestTransition(TestCase):
             initial_state=self.state_high,
             final_state=self.state_low,
             partial_lifetime=0.42,
-            branching_ratio=0.42,
             delta_energy=0.42,
         )
         self.assertEqual(repr(tr), "42:Transition(CO2 v=(0,0,1) → CO2 v=(0,0,0))")
@@ -81,7 +79,6 @@ class TestTransition(TestCase):
             initial_state=self.state_high,
             final_state=self.state_low,
             partial_lifetime=0.42,
-            branching_ratio=0.42,
             delta_energy=0.42,
         )
         with self.assertRaises(Transition.DoesNotExist):
@@ -94,9 +91,8 @@ class TestTransition(TestCase):
 
     def test_create_from_data(self):
         self.assertEqual(0, len(Transition.objects.all()))
-        tr = Transition.create_from_data(self.state_high, self.state_low, 0.1, 0.1)
+        tr = Transition.create_from_data(self.state_high, self.state_low, 0.1)
         self.assertEqual(1, len(Transition.objects.all()))
-        self.assertEqual(tr.branching_ratio, 0.1)
         self.assertEqual(tr.partial_lifetime, 0.1)
         self.assertEqual(tr.delta_energy, -0.2)
 
@@ -105,64 +101,45 @@ class TestTransition(TestCase):
             Transition.create_from_data(
                 self.state_high,
                 self.state_low,
-                partial_lifetime=0.1,
-                branching_ratio=-0.1,
-            )
-        with self.assertRaises(TransitionError):
-            Transition.create_from_data(
-                self.state_high,
-                self.state_low,
-                partial_lifetime=0.1,
-                branching_ratio=1.1,
-            )
-        with self.assertRaises(TransitionError):
-            Transition.create_from_data(
-                self.state_high,
-                self.state_low,
                 partial_lifetime=-0.1,
-                branching_ratio=0.1,
             )
         with self.assertRaises(TransitionError):
             Transition.create_from_data(
                 self.diff_state_high,
                 self.state_low,
                 partial_lifetime=0.1,
-                branching_ratio=0.1,
             )
         with self.assertRaises(TransitionError):
             Transition.create_from_data(
                 self.state_high,
                 self.diff_state_low,
                 partial_lifetime=0.1,
-                branching_ratio=0.1,
             )
         with self.assertRaises(TransitionError):
             Transition.create_from_data(
                 self.state_high,
                 self.state_high,
                 partial_lifetime=0.1,
-                branching_ratio=0.1,
             )
         _ = Transition.create_from_data(
-            self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1
+            self.state_high, self.state_low, partial_lifetime=0.1
         )
         _ = Transition.create_from_data(
             self.diff_state_high,
             self.diff_state_low,
             partial_lifetime=0.1,
-            branching_ratio=0.1,
         )
         self.assertEqual(2, len(Transition.objects.all()))
 
     def test_delta_energy(self):
         t = Transition.create_from_data(
-            self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1
+            self.state_high, self.state_low, partial_lifetime=0.1
         )
         self.assertEqual(t.delta_energy, self.state_low.energy - self.state_high.energy)
 
     def test_sync(self):
         t = Transition.create_from_data(
-            self.state_high, self.state_low, partial_lifetime=0.1, branching_ratio=0.1
+            self.state_high, self.state_low, partial_lifetime=0.1
         )
         s = State.create_from_data(
             self.isotopologue,
@@ -194,9 +171,9 @@ class TestTransition(TestCase):
             ),
         )
 
-        _ = Transition.create_from_data(s1, s2, 0, 0)
-        _ = Transition.create_from_data(s3, s2, 0, 0)
-        tr3 = Transition.create_from_data(s3, s1, 0, 0)
+        _ = Transition.create_from_data(s1, s2, 0)
+        _ = Transition.create_from_data(s3, s2, 0)
+        tr3 = Transition.create_from_data(s3, s1, 0)
 
         # direct create/save should change the Isotopologue.number_transitions etc
         for iso in Isotopologue.get_from_formula_str("CO2"), self.isotopologue:
@@ -269,8 +246,8 @@ class TestTransition(TestCase):
             vib_state_labels="(v1, v2, v3)",
         )
 
-        tr1_pk = Transition.create_from_data(s1, s2, 1, 1).pk
-        tr2_pk = Transition.create_from_data(s3, s2, 1, 1).pk
+        tr1_pk = Transition.create_from_data(s1, s2, 1).pk
+        tr2_pk = Transition.create_from_data(s3, s2, 1).pk
 
         self.assertEqual(Transition.objects.get(pk=tr1_pk).delta_energy, 1)
         self.assertEqual(Transition.objects.get(pk=tr2_pk).delta_energy, -1)

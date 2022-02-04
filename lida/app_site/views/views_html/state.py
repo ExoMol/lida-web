@@ -38,6 +38,7 @@ class StateListView(TemplateView):
                 visible=mol.isotopologue.resolves_vib,
                 searchable=True,
                 individual_search=True,
+                placeholder="Vibrational state"
             ),
             Column("Energy (eV)", "energy", 2),
             Column("Lifetime (s)", "lifetime", 3),

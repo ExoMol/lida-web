@@ -17,7 +17,6 @@ class _Base(ServerSideDataTableView):
         "partial_lifetime": lambda tr: f"{tr.partial_lifetime:.2e}"
         if tr.partial_lifetime is not None
         else "∞",
-        "branching_ratio": lambda tr: f"{tr.branching_ratio:.2e}",
     }
     queryset = None
 

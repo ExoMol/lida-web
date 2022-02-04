@@ -27,7 +27,6 @@ class _Base(TemplateView):
             ),
             Column("Δ<em>E</em> (eV)", "delta_energy", 2),
             Column("Partial lifetime (s)", "partial_lifetime", 3),
-            Column("Branching ratio", "branching_ratio", 4),
         ],
         "scroller": True,
     }
