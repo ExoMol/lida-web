@@ -2,12 +2,10 @@
 
 pyvalem>=2.5.2
 django<4
+django-datatables-serverside
 mysqlclient
 requests
 lxml
 pandas
 tqdm
 ipython
-
-# editable installs from local file system:
--e ./../django-datatables-serverside
