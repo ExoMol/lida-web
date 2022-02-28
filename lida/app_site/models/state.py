@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 from django.db import models
-from pyvalem.states import VibrationalState
 
 from .exceptions import StateError
 from .isotopologue import Isotopologue

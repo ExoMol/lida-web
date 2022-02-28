@@ -83,6 +83,14 @@ Getting started
   database. If everything goes well, this should sync the data content of this project
   on the local system of any future developer with my last state of the project.
 
+Note
+----
+
+The project is very closely related to the ``exomol2lida`` code
+(`here <https://github.com/ExoMol/exomol2lida>`_), ``exomol2lida`` provides the data
+in the exact format that is expected by the ``lida-web`` project. Any developer of
+``lida-web`` needs to be familiar with ``exomol2lida``.
+
 
 Project structure
 =================
@@ -132,6 +140,10 @@ written by me purposefully for this project. Unfortunately, this package is not 
 at all documented, but hopefully I'll get back to it. If there are any questions, I'm
 happy to provide guidance.
 
+The ``app_site.urls`` and ``app_site.views`` are split between the html and ajax
+views/urls, one defining endpoints for html and serving html content, the other
+defining endpoints for ajax requests and serving ajax data to the datatables.net.
+
 
 Data model
 ==========
@@ -142,9 +154,63 @@ The current data model of the web project can be seen on the following
 .. image:: lida-web-diagram.png
   :width: 800
 
+The highest-level unit of the data is the ``Molecule`` model, which roughly corresponds
+to a molecule in ExoMol, each molecule having a unique ``formula_str``.
+There is a 1-to-1 relationship between ``Molecule`` and ``Isotopologue``, where only a
+single isotopologue is allowed per molecule (the most abundant one typically).
+1-to-many relationship is implemented between ``Isotopologue`` and ``State`` models as
+well as between ``State`` and ``Transition`` models.
+
+There is a caveat on the ``formula_str`` attribute belonging to ``Molecule``: this is
+not always the same formula as in ExoMol. As these need to be unique, there are cases
+where the ExoMol molecule formula need to be changed: For example (not sure it exists
+in ExoMol), if we want two isotopologues of H2 both in the LIDA database, we need to
+call one H2, another one D2. The isotopologue formulas belonging to these two then will
+have ExoMol-compatible formulas of (1H)2, and (2H)2. Similar situation is for HCN, where
+the ExoMol dataset distinguishes between two different isomers on the *states* file
+level, whereas in LIDA, we will have two ``Molecule`` instances: ``"HCN", "HNC"``.
+
+It is evident that the database is horribly non-normalized, as there is effectively
+redundant data all over the place. ``State.state_html`` is dependent on
+``State.vib_state_html``, ``State.el_state_html``, and
+``State.isotopologue.molecule.molecule_html``. Or we have ``State`` attributes like
+``vib_state_str``, ``vib_state_html``, ``vib_state_html_notags``, ``vib_state_sort_key``
+where all of those are basically derived from ``vib_state_str``. This data redundancy
+is there for higher computational overhead. ``vib_state_str`` is a plane text
+representation, *html* is what gets rendered, *html_notags* are there for filtering
+and searching through datatables (which show html representations) and *sort keys* are
+there for sorting the datatables columns - adding leading zeros to vibrational states.
+
+This redundancy creates some potential for inconsistent data, as data fields related
+to each other will always need to be changed in sync (if anything gets changes).
+A high-level function is provided for syncing all the fields for all the models,
+discussed further on.
+
+Apart from the various model fields, the model classes also implement each some methods
+such as ``get_from_*`` and ``create_from_*``, which should *always* be used for
+accessing and creating new data instances, as these make sure that no duplicates are
+created etc.
+
+The best way towards understanding the data model is to dive into the
+``app_site.models`` package and read the docstrings.
+
 
 Top-level scripts
 =================
+
+There are two top-level scripts provided so far, located in the ``res`` directory.
+
+The ``populate_molecule`` script defines a function to populate a single-molecule data
+from the exact format created by the ``exomol2lida`` package (related but completely
+stand-alone repository). The populating function needs to be imported
+*from within the Django shell* (``python manage.py shell``) and run from there also.
+
+The ``sync_inconsistent_db`` should be run if any changes are made to some of the
+existing model instances data fields and the database is inconsistent as a result.
+For example, if the html of a ``Molecule`` instance is changed, the html of the
+attached ``State`` instances need to be all changed as well. That can be done (for
+the whole database thought) by running the ``sync_inconsistent_db``
+*from within the django shell*.
 
 
 Known issues
