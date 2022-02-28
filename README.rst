@@ -125,7 +125,9 @@ a request over a particular URL, which results in one of the
 ``app_site.views.views_ajax`` Django views to serve the correct data from the database
 to the actual html view.
 
-The data serving is handled by the ``django-datatables-serverside``, which has been
+The data serving is handled by the
+`django-datatables-serverside <https://github.com/hanicinecm/django-datatables-serverside>`_,
+package (also ``pip`` installable), which has been
 written by me purposefully for this project. Unfortunately, this package is not yet
 at all documented, but hopefully I'll get back to it. If there are any questions, I'm
 happy to provide guidance.
@@ -134,7 +136,11 @@ happy to provide guidance.
 Data model
 ==========
 
-To be included.
+The current data model of the web project can be seen on the following
+*Django Model Dependency Diagram*:
+
+.. image:: lida-web-diagram.png
+  :width: 600
 
 
 Top-level scripts
