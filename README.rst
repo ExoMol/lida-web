@@ -292,3 +292,6 @@ Future work suggestions
 - The API needs to also support the same data filtering/reduction/clumping as discussed
   a couple points higher. This can be controlled via URL itself or with arguments to
   the url.
+
+- And finally, of course, the project needs to be deployed on a live server. I have
+  absolutely no clue what entails, so I have no tips here...
