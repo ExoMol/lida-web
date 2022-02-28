@@ -12,14 +12,21 @@ from app_site.models import Molecule, Isotopologue, State, Transition
 
 def populate_molecule(processed_data_dir):
     """
+    This is a high-level function to populate a single molecule data to the database.
+
+    It needs to be run from within the Django shell. It requires as an argument a
+    path towards a directory which has been previously created by the `exomol2lida`
+    package, and it expects all the data files created by `exomol2lida`.
+    The lida-web project is very much interconnected and dependent on `exomol2lida`.
+
     Parameters
     ----------
     processed_data_dir : str or Path
-        Path towards the contents of the exomol2lida processing and post-processing
-        outputs for this molecule. The exomol2lida is a separate repo, containing
+        Path towards the contents of the `exomol2lida` processing and post-processing
+        outputs for this molecule. The `exomol2lida` is a separate repo, containing
         the code to generate inputs for the LIDA database.
         The directory NEEDS to be named with the molecular formula, exactly as
-        logged by the exomol2lida.process_dataset.DatasetProcessor.
+        logged by the `exomol2lida.process_dataset.DatasetProcessor`.
     """
 
     processed_data_dir = Path(processed_data_dir)
