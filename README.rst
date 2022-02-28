@@ -140,7 +140,7 @@ The current data model of the web project can be seen on the following
 *Django Model Dependency Diagram*:
 
 .. image:: lida-web-diagram.png
-  :width: 1000
+  :width: 1600
 
 
 Top-level scripts
