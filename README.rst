@@ -226,6 +226,28 @@ Known existing issues
   for some reason wrongly calculate the thickness of each row, or something like this.
   Some experimenting with the tables styles in the ``main.css`` sheet might be in order.
 
+- Only 24/27 so-far-processed molecules were populated so far by ``populate_molecule``
+  script (from ``exomol2lida`` outputs, these will be shared). There were problems with
+  couple of molecules with running the population script:
+
+  - HCN: The problem is that HNC already exists in the database (was previously
+    populated) and the HCN has the same isotopologue formula, as HNC, which is not
+    allowed. The best action is to implement some mapping between the input isotopologue
+    formula, as read from ExoMol (which is saved in the ``exomol2lida`` outputs) and the
+    one which should be used by the website (which should have the correct element
+    order). This should be an easy fix.
+
+  - H3: I'm not really sure what is happening there, I have a feeling that one of the
+    states has undefined energy and the NaN energy cannot be saved into the SQL.
+    Not sure how best to solve it, if on the ``lida-web`` level or on the
+    ``exomol2lida`` when building inputs for ``lida-web``.
+
+  - VO: Another tricky one, the .states file in exomol for this dataset was a bit of
+    a mess where there were many electronic states identified by different strings,
+    which were actually the same state. Problem is caused by this. Either a cleaner
+    .states file is needed, or mapping to correct state strings needs to be done in
+    ``exomol2lida`` *before* the states lumping is done in there.
+
 - The data population (using the ``populate_molecule`` functionality) is really slow.
   Slower than data generation at the moment. Some optimization might be in order,
   especially moving towards to large, more challenging molecules, where the lida data
