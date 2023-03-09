@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 
 class SiteAboutView(TemplateView):
     template_name = "site/about.html"
-    extra_context = {"title": "About", "content_heading": "About Lida"}
+    extra_context = {"title": "About", "content_heading": "About LiDB"}
 
 
 class SiteContactView(TemplateView):
