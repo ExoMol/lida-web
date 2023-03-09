@@ -1,4 +1,5 @@
-from lxml import html
+#from lxml import html
+import re
 from pyvalem.states import MolecularTermSymbol
 from django.db import models
 
@@ -152,4 +153,6 @@ def leading_zeros(vib_state_str):
 def strip_tags(html_str):
     if html_str == "":
         return ""
-    return html.fromstring(html_str).text_content()
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', html_str)
+    #return html.fromstring(html_str).text_content()
