@@ -1,4 +1,4 @@
-from lxml import html
+#from lxml import html
 from pyvalem.states import MolecularTermSymbol
 from django.db import models
 

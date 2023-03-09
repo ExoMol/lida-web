@@ -1,0 +1,8 @@
+pyvalem>=2.5.2
+django<4
+mysqlclient
+requests
+lxml
+pandas
+tqdm
+ipython

@@ -11,12 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-from .local_settings import SECRET_KEY, DEBUG, DATABASES
+from .local_settings import SECRET_KEY, DEBUG, DATABASES, STATIC_URL, STATIC_ROOT, ALLOWED_HOSTS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -96,8 +94,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
-STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
