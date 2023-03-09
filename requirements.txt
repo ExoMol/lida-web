@@ -5,7 +5,6 @@ django<4
 django-datatables-serverside
 mysqlclient
 requests
-lxml
 pandas
 tqdm
 ipython
