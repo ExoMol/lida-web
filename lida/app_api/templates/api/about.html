@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-  About public API...
+The URL for API requests is:<br>
+<code> https://www.exomol.com/lidb/api/</code><br>
+Requests are made using the GET protocol and require certain keywords to retrieve the correct LiDB data.<br><br>
+
+Data can be returned in either JSON (default) or CSV format using the <code>format</code> keyword. The first line of JSON requests contains meta-data with information on the molecule formula, isotopologue, ExoMol dataset and version, the number of states in the LiDB query, and the number of transitions in the LiDB query. The first line of CSV requests contains column headers.<br><br>
+
+Examples of making requests through the API:<br><br>
+To make a request for total state lifetimes of the CaO molecule in CSV format:<br>
+<code>https://www.exomol.com/lidb/api/?molecule=CaO&category=states&format=csv</code><br><br>
+
+To make a request for partial lifetimes of "transitions" between states of water (H<sub>2</sub>O) in JSON format:<br>
+<code>https://www.exomol.com/lidb/api/?molecule=H2O&category=transitions&format=json</code><br>
+
 {% endblock content %}
