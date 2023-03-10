@@ -10,7 +10,7 @@ from app_site.models.transition import Transition
 
 class ApiAboutView(TemplateView):
     template_name = "api/about.html"
-    extra_context = {"title": "API", "content_heading": "Accessing LiDB data through the API"}
+    extra_context = {"title": "API", "content_heading": "Requesting LiDB data through the API"}
 
 
 
