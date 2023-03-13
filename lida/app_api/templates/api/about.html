@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-The URL for API requests is:<br>
-<code> https://www.exomol.com/lidb/api/</code><br>
+The URL for API requests is: <code> https://www.exomol.com/lidb/api/</code><br><br>
 Requests are made using the GET protocol and require certain keywords to retrieve the correct LiDB data.<br><br>
 
-Data can be returned in either JSON (default) or CSV format using the <code>format</code> keyword. The first line of JSON requests contains meta-data with information on the molecule formula, isotopologue, ExoMol dataset and version, the number of states in the LiDB query, and the number of transitions in the LiDB query. The first line of CSV requests contains column headers.<br><br>
+Firstly, requests must be made using the <code>molecule</code> keyword to select a specific dataset. Datasets are available for all the molecules listed on the LiDB data homepage.<br><br>
+
+The <code>category</code> keyword must also be provided. <code>category=states</code> will request total lifetimes (in seconds) for the lumped vibrational states. <code>category=transitions</code> will request partial lifetimes (in seconds) between the lumped vibrational states.<br><br>
+
+Data can be returned in either JSON (default) or CSV format using the <code>format</code> keyword. The first line returned from JSON requests contains meta-data with information on the molecule formula, isotopologue, ExoMol dataset and version, the number of states in the LiDB query, and the number of transitions in the LiDB query. The first line returned from CSV requests contains column headers of the associated dataset.<br><br>
 
 Examples of making requests through the API:<br><br>
 To make a request for total state lifetimes of the CaO molecule in CSV format:<br>
