@@ -24,7 +24,7 @@ class MoleculeListView(TemplateView):
                 individual_search=True,
                 placeholder="N",
             ),
-            Column("<em>m</em> (amu)", "isotopologue__mass", 2),
+            Column("<em>m</em> (Da)", "isotopologue__mass", 2),
             Column("States", "isotopologue__number_states", 3),
             Column("Transitions", "isotopologue__number_transitions", 4),
         ],
