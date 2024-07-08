@@ -1,6 +1,13 @@
 #from lxml import html
 import re
 from pyvalem.states import MolecularTermSymbol
+from pyvalem.states import AtomicTermSymbol
+from pyvalem.states import AtomicConfiguration
+from pyvalem.states import RacahSymbol
+from pyvalem.states import CompoundLSCoupling
+from pyvalem.states.J1K_LK_coupling import J1K_LK_Coupling
+from pyvalem.states.J1K_LK_coupling import J1K_LK_CouplingError
+
 from django.db import models
 
 from .exceptions import StateError
@@ -79,6 +86,23 @@ def validate_and_parse_vib_state_str(vib_state_str):
     """
     if vib_state_str == "":
         return [], ""
+    #ALEC
+    # Check if vib_state_str contains s,p,d,f,g,h, then use pyvalem atomic configuration format
+    valid_shells = ["s", "p", "d", "f", "g", "h"]
+    vib_state_str = vib_state_str.strip()
+
+    #ALEC
+    # Check if the vib_state_str has the form e.g."1s2.2s2(3P).3s"
+    if len(vib_state_str) >= 2 and vib_state_str[1] in valid_shells and "(" in vib_state_str and ")" in vib_state_str:
+        vib_state_html = CompoundLSCoupling(vib_state_str).html
+        quanta_int = [1]
+        return quanta_int, vib_state_html
+    # If not check is atomic configuration format e.g. "1s2.2s2.2p6"
+    if len(vib_state_str) >= 2 and vib_state_str[1] in valid_shells:
+        vib_state_html = AtomicConfiguration(vib_state_str).html
+        quanta_int = [1]
+        return quanta_int, vib_state_html
+    #ALEC
 
     invalid_state_str_msg = (
         f'Vibrational string "{vib_state_str}" is not in the form of '
@@ -125,17 +149,48 @@ def canonicalise_and_parse_el_state_str(el_state_str):
     el_state_str = el_state_str.strip()
     if el_state_str == "":
         return "", ""
+    #ALEC
+    # Handling for the special case using J1K_LK_Coupling or RacahSymbol
+    if "[" in el_state_str and "]" in el_state_str:
+        # Check if it matches J1K_LK_Coupling pattern like "2[4]" or "2[3/2]o"
+        try:
+            canonicalised_el_state_str = repr(J1K_LK_Coupling(el_state_str))
+            el_state_html = get_el_state_html(el_state_str)
+            return canonicalised_el_state_str, el_state_html
+        except J1K_LK_CouplingError:
+            # If J1K_LK_Coupling parsing fails, try RacahSymbol
+            canonicalised_el_state_str = repr(RacahSymbol(el_state_str))
+            el_state_html = get_el_state_html(el_state_str)
+            return canonicalised_el_state_str, el_state_html
+    #Check if the first character of el_state_str is a digit to indicate atomic term notation
+    if el_state_str[0].isdigit() or (len(el_state_str) > 1 and el_state_str[1].isdigit()):
+        canonicalised_el_state_str = repr(AtomicTermSymbol(el_state_str))
+        el_state_html = get_el_state_html(el_state_str)
+        return canonicalised_el_state_str, el_state_html
+    #ALEC
     canonicalised_el_state_str = repr(MolecularTermSymbol(el_state_str))
     el_state_html = get_el_state_html(el_state_str)
-    return canonicalised_el_state_str, el_state_html
+    return canonicalised_el_state_str, el_state_html    
 
 
 def get_el_state_html(el_state_str):
     el_state_str = el_state_str.strip()
     if el_state_str == "":
         return ""
+    #ALEC
+    # Check if the el_state_str has J1K_LK_Coupling Racah Symbol form, e.g. 2[3/2]
+    if "[" in el_state_str and "]" in el_state_str:
+        try:
+            # Attempt to parse as J1K_LK_Coupling
+            return J1K_LK_Coupling(el_state_str).html
+        except J1K_LK_CouplingError:
+            # If parsing as J1K_LK_Coupling fails, attempt to parse as RacahSymbol
+            return RacahSymbol(el_state_str).html
+    #Check if the first character of el_state_str is a digit to indicate atomic term notation
+    if el_state_str[0].isdigit() or (len(el_state_str) > 1 and el_state_str[1].isdigit()):
+        return AtomicTermSymbol(el_state_str).html
+    #ALEC
     return MolecularTermSymbol(el_state_str).html
-
 
 def get_state_str(isotopologue, el_state_str, vib_state_str):
     molecule_str = str(isotopologue.molecule)

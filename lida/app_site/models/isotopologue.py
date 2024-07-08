@@ -189,7 +189,7 @@ class Isotopologue(BaseModel):
         elif n == 2:
             lim = 1
         else:
-            lim = 0
+            lim = 1 # 0 ALEC
         if vib_state_dim > lim:
             raise MoleculeError(
                 f"Vibrational state dimensionality {vib_state_dim} higher than "

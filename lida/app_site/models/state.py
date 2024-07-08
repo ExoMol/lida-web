@@ -68,7 +68,7 @@ class State(BaseModel):
     el_state_str = models.CharField(max_length=64)
     # vib_state_str is always a string and denoting either a vector or a single v,
     # e.g. '(0, 1, 0, 3)', '(0, 0, 0, 0)', and '5'
-    vib_state_str = models.CharField(max_length=64)
+    vib_state_str = models.CharField(max_length=128)
 
     # the sync functions dict needs to be ordered, as the html attribute sync function
     # expects el_state_html and vib_state_html already synced
@@ -118,9 +118,9 @@ class State(BaseModel):
     # (or the sync method).
     el_state_html = models.CharField(max_length=64)
     el_state_html_notags = models.CharField(max_length=64)
-    vib_state_html = models.CharField(max_length=64)
-    vib_state_html_notags = models.CharField(max_length=64)
-    vib_state_sort_key = models.CharField(max_length=64)
+    vib_state_html = models.CharField(max_length=128)
+    vib_state_html_notags = models.CharField(max_length=128)
+    vib_state_sort_key = models.CharField(max_length=128)
     state_html = models.CharField(max_length=128)
     state_html_notags = models.CharField(max_length=128)
     state_sort_key = models.CharField(max_length=128)
