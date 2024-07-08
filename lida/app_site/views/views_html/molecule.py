@@ -7,15 +7,15 @@ from .utils import Column, Order
 class MoleculeListView(TemplateView):
     template_name = "site/datatable.html"
     extra_context = {
-        "title": "Molecules",
-        "content_heading": "Molecules",
+        "title": "Species",
+        "content_heading": "Species",
         "table_footer": True,
         "scroller": False,
         "ajax_url": reverse_lazy("molecule-list-ajax"),
         "datatable_id": "datatable-molecule",
         "initial_order": [Order(1), Order(2)],
         "columns": [
-            Column("Molecule", "html", 0, searchable=True, individual_search=True),
+            Column("Species", "html", 0, searchable=True, individual_search=True),
             Column(
                 "<em>N</em><sub>atoms</sub>",
                 "number_atoms",
