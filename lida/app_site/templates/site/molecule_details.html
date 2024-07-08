@@ -4,21 +4,25 @@
     <div class="modal-dialog">
       <div class="modal-content bg-dark modal-details">
         <div class="modal-header">
-          <h5 class="modal-title">Molecule details</h5>
+          <h5 class="modal-title">Species details</h5>
         </div>
         <div class="modal-body">
           <div class="row">
             <div class="col-7">Formula:</div>
             <div class="col-5">{{ molecule.html }}</div>
           </div>
+          {% if molecule.number_atoms == 1 %}
           <div class="row">
-            <div class="col-7">Name:</div>
-            <div class="col-5">{{ molecule.name }}</div>
+            <div class="col-7">Isotope:</div>
+            <div class="col-5">{{ molecule.isotopologue.html }}</div>
           </div>
+          {% else %}
           <div class="row">
             <div class="col-7">Isotopologue:</div>
             <div class="col-5">{{ molecule.isotopologue.html }}</div>
           </div>
+          {% endif %}
+          {% if molecule.number_atoms != 1 %}
           <div class="row">
             <div class="col-7">Resolves electronic states:</div>
             <div class="col-5">{% if molecule.isotopologue.resolves_el %}Yes{% else %}No{% endif %}</div>
@@ -35,6 +39,7 @@
             <div class="col-7">Vibrational quantum labels:</div>
             <div class="col-5">{{ molecule.isotopologue.vib_quantum_labels_html }}</div>
           </div>
+          {% endif %}
           <div class="row">
             <div class="col-7">Mass (Da):</div>
             <div class="col-5">{{ molecule.isotopologue.mass|floatformat:-5 }}</div>
@@ -51,12 +56,21 @@
               <a href="{% url 'transition-list' molecule.slug %}" class="site-link">{{ molecule.isotopologue.number_transitions }}</a>
             </div>
           </div>
+          {% if molecule.number_atoms == 1 %}
+          <div class="row">
+            <div class="col-7">Dataset name:</div>
+            <div class="col-5">
+              <a href="https://www.nist.gov/pml/atomic-spectra-database" class="site-link" target="_blank" rel="noopener noreferrer">{{ molecule.isotopologue.dataset_name }}</a>
+            </div>
+          </div>
+          {% else %}
           <div class="row">
             <div class="col-7">Exomol dataset name:</div>
             <div class="col-5">
               <a href="https://www.exomol.com/data/molecules/{{ molecule.slug }}/{{ molecule.isotopologue.iso_slug }}/{{ molecule.isotopologue.dataset_name }}" class="site-link" target="_blank" rel="noopener noreferrer">{{ molecule.isotopologue.dataset_name }}</a>
             </div>
           </div>
+          {% endif %}
         </div>
       </div>
     </div>
