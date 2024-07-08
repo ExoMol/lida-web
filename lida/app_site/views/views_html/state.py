@@ -18,13 +18,19 @@ class StateListView(TemplateView):
 
         mol = Molecule.objects.get(slug=self.kwargs["mol_slug"])
 
+        #ALEC
+        # Determine the column label based on the number of atoms
+        column_label_el = "Atomic term" if mol.number_atoms == 1 else "Electronic state"
+        column_label_vib = "Electronic configuration" if mol.number_atoms == 1 else f"Vibrational state: {mol.isotopologue.vib_quantum_labels_html}"
+        #ALEC
+
         context["title"] = f"{mol.slug} states"
         context["content_heading"] = f"States of {mol.html}"
         context["ajax_url"] = reverse("state-list-ajax", args=[mol.slug])
         context["datatable_id"] = f"datatable-state-{mol.slug}"
         context["columns"] = [
             Column(
-                "Electronic state",
+                column_label_el,#"Electronic state",
                 "el_state_html",
                 0,
                 visible=mol.isotopologue.resolves_el,
@@ -32,8 +38,8 @@ class StateListView(TemplateView):
                 individual_search=True,
             ),
             Column(
-                f"Vibrational state: {mol.isotopologue.vib_quantum_labels_html}",
-                "vib_state_str",
+                column_label_vib,#f"Vibrational state: {mol.isotopologue.vib_quantum_labels_html}",
+                "vib_state_html",#"vib_state_str",
                 1,
                 visible=mol.isotopologue.resolves_vib,
                 searchable=True,
