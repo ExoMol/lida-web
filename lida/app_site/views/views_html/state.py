@@ -22,6 +22,7 @@ class StateListView(TemplateView):
         # Determine the column label based on the number of atoms
         column_label_el = "Atomic term" if mol.number_atoms == 1 else "Electronic state"
         column_label_vib = "Electronic configuration" if mol.number_atoms == 1 else f"Vibrational state: {mol.isotopologue.vib_quantum_labels_html}"
+        placeholder1="Electronic configuration" if mol.number_atoms == 1 else "Vibrational state"
         #ALEC
 
         context["title"] = f"{mol.slug} states"
@@ -44,7 +45,7 @@ class StateListView(TemplateView):
                 visible=mol.isotopologue.resolves_vib,
                 searchable=True,
                 individual_search=True,
-                placeholder="Vibrational state"
+                placeholder=placeholder1
             ),
             Column("Energy (eV)", "energy", 2),
             Column("Lifetime (s)", "lifetime", 3),
