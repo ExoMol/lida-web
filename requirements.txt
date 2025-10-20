@@ -2,7 +2,7 @@
 
 pyvalem>=2.5.2
 django<4
-django-datatables-serverside
+django-datatables-serverside>=1.0.1
 mysqlclient
 requests
 pandas
